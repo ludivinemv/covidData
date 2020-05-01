@@ -3,6 +3,12 @@
 Created on Mon Apr 27 17:52:41 2020
 
 @author: ludiv
+
+
+
+TO DO:
+1. requirement
+2. README
 """
 
 from selenium import webdriver
@@ -10,13 +16,12 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import os
+#import ezodf #conda install -c conda-forge ezodf 
 driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
 
 
-
-
 ''' *****************************************'''
-''' *************Site 1**********************'''
+''' ************* DataGouv ******************'''
 ''' *****************************************'''
 def DataGouvExtraction(siteweb,site, detail):
     driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
@@ -48,14 +53,6 @@ def DataGouvExtraction(siteweb,site, detail):
             r = requests.get(ref, allow_redirects=True)
             open(PATHData, 'wb').write(r.content)
 site = 'DataGouv'
-#content = driver.page_source
-# pour ce site csv a telecharger sont:
-# dans la class='resources-list'
-# article id='resource-NUMBERs' class='card resource-card'
-# <article id="resource-63352e38-d353-4b54-bfd1-f1b3ee1cabd7" class="card resource-card ">
-# en dessous, il y a card body (on en veut pas)
-# et <footer> --> <div class="resource-card-actions btn-toolbar">
-# en dessous <a href="http..." class = "btn btn-sm btn-primary" download>Télécharger</a>
 
     #driver.get('https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/')
 siteweb ='https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/'
@@ -68,13 +65,124 @@ DataGouvExtraction(siteweb,site, detail)
 
 
 
-
-
 ''' *****************************************'''
-''' *************Site 2**********************'''
+''' *********** Geodes **********************'''
 ''' *****************************************'''
 driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
 site = 'Geodes'
+
+
+
+''' *****************************************'''
+''' ************* Get informations ********'''
+''' *****************************************'''
+#On a l'age par tranche de 5 ans et sexe au 1er janvier 2020 (et 2019):
+# https://www.insee.fr/fr/statistiques/1893198 :Estimation de population par département, sexe et âge quinquennal - Années 1975 à 2020 (csv a telecharger)
+#--> on peut donc avoir le sexe, age, population
+
+''' ************** FirstJan2020 *******************'''
+#1. Take csv from  https://www.insee.fr/fr/statistiques/1893198 :Estimation de population par département, sexe et âge quinquennal - Années 1975 à 2020 (csv a telecharger)
+#### trop long donc je l'ai mis a la main
+PATHData = './Data/Insee/demography.xls'
+# if os.path.exists(PATHData)==False:
+#     driver.get('https://www.insee.fr/fr/statistiques/1893198')
+#     ref = driver.find_element_by_xpath('//a[@href="/fr/statistiques/fichier/1893198/estim-pop-dep-sexe-aq-1975-2020.xls"]')
+#     r = requests.get(ref, stream=True,allow_redirects=True)
+#     open(PATHData, 'wb').write(r.content) 
+
+#2. open xls
+demo = pd.read_excel(io=PATHData, sheet_name='2020') #we can choose the year here.
+
+#3. convert in dataframe
+def cleanDemo(df):
+    age = []
+    for i in range(21):
+        aa=df.iloc[3,i+2]
+        if i==0 or i==1:
+            age.append('{}_{}'.format(aa[0],aa[4]))
+        elif i==19:
+            age.append('{}{}_{}'.format(aa[0],aa[1],'plus'))
+        elif i == 20:
+            age.append('total')
+        else:
+            age.append('{}{}_{}{}'.format(aa[0],aa[1],aa[5],aa[6]))
+
+    col = ['code','label']
+    for i in range(21):    
+        col.append('E'+age[i])
+    for i in range(21):    
+        col.append('H'+age[i])
+    for i in range(21):    
+        col.append('F'+age[i])
+    df.columns = col
+    df = df.iloc[4:,:]
+    df  = df.drop([100,106,107,108,109])
+    df.index = df.loc[:,'code']
+    df = df.drop(['code'],axis=1)
+    return df
+demo = cleanDemo(demo) #all data of the population/sex/age on the 1rst of January of the chosen year
+
+#4. It will be the Base where we will add variation of other weeks for sexe, age and demog.
+FirstJan2020 = pd.DataFrame(index=demo.index,
+    columns=['label','population','sex', 'age']) #Abstract of the informations on the 1rst of January of the chosen year
+FirstJan2020.loc[:,'label']=demo.loc[:,'label']
+
+#5.population (number)
+FirstJan2020.loc[:,'population'] = demo.loc[:,'Etotal']
+
+#6.sex (% women on the total of population)
+wom = demo.loc[:,'Ftotal']
+tot = demo.loc[:,'Etotal']
+rate = 100*wom/tot
+FirstJan2020.loc[:,'sex'] = rate
+
+#7.age (depend of what we want, for exemple if we want the rate of more than 65 years)
+more = demo.loc[:,'E65_69'] +  demo.loc[:,'E70_74'] 
++ demo.loc[:,'E75_79'] +  demo.loc[:,'E80_84']
++ demo.loc[:,'E85_89'] +  demo.loc[:,'E90_94'] +  demo.loc[:,'E95_plus']
+tot = demo.loc[:,'Etotal']
+rate = 100*more/tot
+FirstJan2020.loc[:,'age'] = rate
+
+''' ************** Population *******************'''
+#1. find population's evolution per weeks (or days and sum or death and birth) per departements
+#2.calculs to have to population of the weeks
+#3. create a dataframe with as index the code and as columns the weeks
+
+
+''' ************** sex *******************'''
+#1. find sex's evolution per weeks (or days and sum or death and birth) per departements
+#2.calculs to have to population of the weeks
+#3. create a dataframe with as index the code and as columns the weeks
+
+
+''' ************** age *******************'''
+#1. find age's evolution per weeks (or days and sum or death and birth) per departements
+#2.calculs to have to population of the weeks
+#3. create a dataframe with as index the code and as columns the weeks
+
+''' *****************************************'''
+''' *** Create a unify csv for each week ****'''
+''' *****************************************'''
+#1. choose the weeks to handle
+weeks =['2020_S{}'.format(i) for i in range(1,17)]
+
+2. #choose the columns
+colUnif = ['label','sex', 'age','covid_sos','covid_urg','covid_hosp','asthme_sos',	'asthme_urg','asthme_hosp']
+for week in weeks:
+    #3. create a dataframe with departements as index 
+    dataUnif = pd.DataFrame(index=demo.index,
+        columns=colUnif)
+    dataUnif.loc[:,'label']=demo.loc[:,'label']
+
+    #4. add each columns
+
+    #5. save as a csv with the name = [YEAR]_S[week].csv
+    dataUnif.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+
+#6. create a xcel with each leaf = one csv
+#7.think about how to do the update automatically
+
 
 
 
