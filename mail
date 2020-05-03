@@ -1,0 +1,58 @@
+
+Bonjour,
+voici un état d'avancement de ce qui a été fait cette semaine et les questions pour plus de précisions.
+Nous avons trouvé pour l'instant dans nos premières recherches:
+* les données démographiques au premier janvier de chaque année (nombre, sexe et age) #https://www.insee.fr/fr/statistiques/1893198
+(on utilisera ensuite ceci coulplé à l'évolution par semaine)
+Pour les pathologies sur les sites géodes (en 2020) :
+* covid
+* asmthe
+Pour ces pathologies les informations jusqu'à la 2020-S16 sont:
+*Taux d'actes médicaux SOS médecins (sur 10 000 actes)
+*Taux de passage aux urgences (sur 10 000 passages)
+*Taux d'hospitalisation par passage au urgences (sur 10 000 passages)
+
+Nous avons fait un pipeline python (grâce à Selenium) pour récupérer ces données automatiquement, et mettre à jour les csv en lancant le code.
+Nous sommes en train de le finir pour que :
+*cela récupère l'information sous forme csv
+*fasse les calculs nécessairent pour récupérer ces données par semaine
+*les enregistrent dans un csv armonisé par semaine
+*et les concatainent pour avoir, en plus des .csv par semaine, un .xls avec une feuille par semaine afin de pouvoir tout visualiser
+
+Questions:
+* Préférez vous le code du département, le nom du département ou les deux (comme dans l'exemple)?
+
+* voulez vous aussi pour chaque colonne, le nombre pour la france?
+
+* pour la démographie, preferez vous pour chaque semaine le nombre de personnes en plus, le taux d'augmentation/diminution
+ou nombre d'habitant?
+
+* Pour chaque pathologies, le ou lesquels voulez vous parmi:
+    ** Taux d'actes médicaux SOS médecins (sur 10 000 actes)
+    **Taux de passage aux urgences (sur 10 000 passages)
+    **Taux d'hospitalisation par passage au urgences (sur 10 000 passages)
+*Pour chaque pathologie, quelle tranche d'age voulez vous?:
+    ** tous ages confondus, - de 15 ans, entre 15 et 65, plus de 65)
+
+* pour l'age: l'age médian, l'age moyen, taux pour chaque classe (quelles classes)?
+
+Voici le lien de notre github où se trouve notre code en cours et les données: 
+Ainsi que ci-joint, un exemple de .xls et de .csv.
+
+En fonction de vos réponses, nous vous enverrons, la semaine prochaine les prochains résultats.
+
+N'hésitez pas à revenir vers nous.
+
+Bonne fin de week-end,
+
+Vanessa et Ludivine.
+
+
+
+
+
+
+
+
+
+
