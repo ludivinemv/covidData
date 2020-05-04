@@ -1,4 +1,0 @@
-git checkout ludi_branch
-git add .
-git commit -m ' ' 
-git push origin ludi_branch
