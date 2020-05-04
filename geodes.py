@@ -6,14 +6,14 @@ Created on Mon Apr 29 17:52:41 2020
 """
 
 from selenium import webdriver
-import time
+
 import csv
 import pandas as pd
 driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
 
 def extractDataFromSiteGeodes(siteweb):
     driver.get(siteweb)
-    time.sleep(5)
+    time.sleep(10)
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
     python_button.click()
     time.sleep(5)
@@ -25,19 +25,24 @@ def extractDataFromSiteGeodes(siteweb):
     column=["".join(text[i].split()[2:]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
     return column
 
-def writecsv(fileToWrite, column, nameColumn, numberOfColumn):
+def writecsv(fileToWrite, column, nameColumn, loc):
     df = pd.read_csv(fileToWrite)
-    df[nameColumn] = column
-    df.to_csv(fileToWrite, index=numberOfColumn)
+    df.insert(loc, nameColumn, column, allow_duplicates = False)
+    # df[nameColumn] = column
+    # df.to_csv(fileToWrite, index=numberOfColumn)
 
 
 siteweb="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
 fileToWrite='./data/example/2020_Copy.csv'
-numberOfColumn=3
-nameColumn="asthme_hosp"
+loc=1
+nameColumn="vane"
 column=extractDataFromSiteGeodes(siteweb)
 print(column)
-writecsv(fileToWrite, column, nameColumn, numberOfColumn)
+df = pd.read_csv(fileToWrite)
+writecsv(fileToWrite, column, nameColumn, loc)
+###WRITE ludi ???
+#df.insert(loc, nameColumn, column, allow_duplicates = False)
+
 
 
 #ASTHME

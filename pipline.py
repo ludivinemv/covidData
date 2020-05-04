@@ -68,8 +68,47 @@ DataGouvExtraction(siteweb,site, detail)
 ''' *****************************************'''
 ''' *********** Geodes **********************'''
 ''' *****************************************'''
-driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
+import time
+# driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
 site = 'Geodes'
+
+
+def extractDataFromSiteGeodes(site):
+    driver.get(siteweb)
+    time.sleep(10)
+    python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
+    python_button.click()
+    time.sleep(5)
+    python_button = driver.find_element_by_xpath("//th[@class= 'dt-head-left sorting_asc']")
+    python_button.click()
+    table = driver.find_element_by_xpath("//tbody")
+    rows = table.find_elements_by_xpath("//tr[@role= 'row']")
+    text = [x.text for x in rows]
+    column=["".join(text[i].split()[2:]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
+    return column
+
+#For all sickness and weeks'
+medicalType=["_sos", "_pass_sau", "_hospit_sau"]
+#BRONCHITE, GRIPPE et  PNEUMOPATHIE
+#COVID : nombre de test virologique effectués en ville et nombre de test positifs ?
+sickness=[ "asthme", "bronchite", "grippe","pneumopathie"]
+sickAndtypes = ["prop_"+ i+ j for i in sickness for j in medicalType]
+print(sickAndtypes)
+weeks=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+print(weeks)
+#tous ages confondus, - de 15 ans, entre 15 et 65, plus de 65
+#?????????
+base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
+sitesweb=[base[:-62]+sickAndtype+base[-40:-37]+str(week)+base[-29:] for sickAndtype in sickAndtypes for week in weeks]
+print(sitesweb)
+
+#just for test rewrite sitesWeb with just one site
+sitesweb=["https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"]
+#For extract column from all sites and add to csv 
+column=extractDataFromSiteGeodes(siteweb)
+#write on CSV with ludi code!!!
+
+
 
 
 
@@ -177,13 +216,17 @@ for week in weeks:
 
     #4. add each columns
 
+
     #5. save as a csv with the name = [YEAR]_S[week].csv
     dataUnif.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
 
 #6. create a xcel with each leaf = one csv
 #7.think about how to do the update automatically
 
+df = pd.read_csv(fileToWrite)
+dataframe=
 
+dataUnif.loc[:,'label']=demo.loc[:,'label']
 
 
 
