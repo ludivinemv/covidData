@@ -20,96 +20,6 @@ import os
 driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
 
 
-''' *****************************************'''
-''' ************* DataGouv ******************'''
-''' *****************************************'''
-def DataGouvExtraction(siteweb,site, detail):
-    driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
-    driver.get(siteweb)
-    #resources-list
-    resourceClass = driver.find_element_by_xpath("//div[@class='resources-list']")
-    #just display the text in this resources_list to try
-    # h4 = resourceClass.find_element_by_xpath(".//h4[@class='resource-type']")
-    # h4.text
-    # #card with the files inside. It should be  for loop with @class = instead of id= but for the moment class doesn't work
-    articles = resourceClass.find_elements_by_xpath(".//article")
-    #Now for all articles that e want on the page
-    dossier = 'Data/'+ site+'/'+ detail
-    os.makedirs(dossier, exist_ok=True) 
-    for i in range(len(articles)):
-        article = articles[i]
-        #obtain the name of the csv
-        classN = article.find_element_by_class_name('ellipsis')
-        name = classN.text
-        PATHData = dossier + '/' + name
-        if os.path.exists(PATHData)==False:      
-            #obtain the href
-            id_article = article.get_attribute('id') # display the id of the current article
-            footer = article.find_element_by_xpath(".//footer")
-            toolbar = footer.find_elements_by_xpath(".//div")
-            classlink = toolbar[1].find_elements_by_xpath(".//a")
-            ref = classlink[1].get_attribute('href') #Link to download 
-            # download the file
-            r = requests.get(ref, allow_redirects=True)
-            open(PATHData, 'wb').write(r.content)
-site = 'DataGouv'
-
-    #driver.get('https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/')
-siteweb ='https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/'
-detail = 'DataGouv_donnes_hospitalieres_covid'
-DataGouvExtraction(siteweb,site, detail)
-
-siteweb = 'https://www.data.gouv.fr/fr/datasets/donnees-des-urgences-hospitalieres-et-de-sos-medecins-relatives-a-lepidemie-de-covid-19/'
-detail = 'DataGouv_donnes_urgences_et_sos_medecin_covid'
-DataGouvExtraction(siteweb,site, detail)
-
-
-
-''' *****************************************'''
-''' *********** Geodes **********************'''
-''' *****************************************'''
-import time
-# driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
-site = 'Geodes'
-
-
-def extractDataFromSiteGeodes(site):
-    driver.get(siteweb)
-    time.sleep(10)
-    python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
-    python_button.click()
-    time.sleep(5)
-    python_button = driver.find_element_by_xpath("//th[@class= 'dt-head-left sorting_asc']")
-    python_button.click()
-    table = driver.find_element_by_xpath("//tbody")
-    rows = table.find_elements_by_xpath("//tr[@role= 'row']")
-    text = [x.text for x in rows]
-    column=["".join(text[i].split()[2:]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
-    return column
-
-#For all sickness and weeks'
-medicalType=["_sos", "_pass_sau", "_hospit_sau"]
-#BRONCHITE, GRIPPE et  PNEUMOPATHIE
-#COVID : nombre de test virologique effectués en ville et nombre de test positifs ?
-sickness=[ "asthme", "bronchite", "grippe","pneumopathie"]
-sickAndtypes = ["prop_"+ i+ j for i in sickness for j in medicalType]
-print(sickAndtypes)
-weeks=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
-print(weeks)
-#tous ages confondus, - de 15 ans, entre 15 et 65, plus de 65
-#?????????
-base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-sitesweb=[base[:-62]+sickAndtype+base[-40:-37]+str(week)+base[-29:] for sickAndtype in sickAndtypes for week in weeks]
-print(sitesweb)
-
-#just for test rewrite sitesWeb with just one site
-sitesweb=["https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"]
-#For extract column from all sites and add to csv 
-column=extractDataFromSiteGeodes(siteweb)
-#write on CSV with ludi code!!!
-
-
-
 
 
 ''' *****************************************'''
@@ -204,10 +114,37 @@ FirstJan2020.loc[:,'age'] = rate
 ''' *** Create a unify csv for each week ****'''
 ''' *****************************************'''
 #1. choose the weeks to handle
-weeks =['2020_S{}'.format(i) for i in range(1,17)]
+weeks=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+print(weeks)
 
 2. #choose the columns
-colUnif = ['label','sex', 'age','covid_sos','covid_urg','covid_hosp','asthme_sos',	'asthme_urg','asthme_hosp']
+colUnif = ['label','sex', 'mean_age',
+'covid_sos_moins15','covid_sos_15_65','covid_sos_plus65','covid_sos_all',
+'covid_urg_moins15','covid_urg_15_65','covid_urg_plus65','covid_urg_all',
+'covid_hosp_moins15','covid_hosp_15_65','covid_hosp_plus65','covid_hosp_all',
+'covid_villeTest_moins15','covid_villeTest_15_65','covid_villeTest_plus65','covid_villeTest_all',
+'covid_villePos_moins15','covid_villePos_15_65','covid_villePos_plus65','covid_villePos_all',
+
+
+'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
+'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
+'asthme_hosp_moins15','asthme_hosp_15_65','asthme_hosp_plus65','asthme_hosp_all',
+
+
+'bronchite_sos_moins15','bronchite_sos_15_65','bronchite_sos_plus65','bronchite_sos_all',
+'bronchite_urg_moins15', 'bronchite_urg_15_65', 'bronchite_urg_plus65', 'bronchite_urg_all',
+'bronchite_hosp_moins15','bronchite_hosp_15_65','bronchite_hosp_plus65','bronchite_hosp_all',
+
+'grippe_sos_moins15','grippe_sos_15_65','grippe_sos_plus65','grippe_sos_all',
+'grippe_urg_moins15', 'grippe_urg_15_65', 'grippe_urg_plus65', 'grippe_urg_all',
+'grippe_hosp_moins15','grippe_hosp_15_65','grippe_hosp_plus65','grippe_hosp_all',
+
+
+'pneumopathie_sos_moins15','pneumopathie_sos_15_65','pneumopathie_sos_plus65','pneumopathie_sos_all',
+'pneumopathie_urg_moins15', 'pneumopathie_urg_15_65', 'pneumopathie_urg_plus65', 'pneumopathie_urg_all',
+'pneumopathie_hosp_moins15','pneumopathie_hosp_15_65','pneumopathie_hosp_plus65','pneumopathie_hosp_all'
+
+]
 for week in weeks:
     #3. create a dataframe with departements as index 
     dataUnif = pd.DataFrame(index=demo.index,
@@ -230,6 +167,130 @@ dataUnif.loc[:,'label']=demo.loc[:,'label']
 
 
 
+
+
+
+''' *****************************************'''
+''' ************* DataGouv ******************'''
+''' *****************************************'''
+def DataGouvExtraction(siteweb,site, detail):
+    driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
+    driver.get(siteweb)
+    #resources-list
+    resourceClass = driver.find_element_by_xpath("//div[@class='resources-list']")
+    #just display the text in this resources_list to try
+    # h4 = resourceClass.find_element_by_xpath(".//h4[@class='resource-type']")
+    # h4.text
+    # #card with the files inside. It should be  for loop with @class = instead of id= but for the moment class doesn't work
+    articles = resourceClass.find_elements_by_xpath(".//article")
+    #Now for all articles that e want on the page
+    dossier = 'Data/'+ site+'/'+ detail
+    os.makedirs(dossier, exist_ok=True) 
+    for i in range(len(articles)):
+        article = articles[i]
+        #obtain the name of the csv
+        classN = article.find_element_by_class_name('ellipsis')
+        name = classN.text
+        PATHData = dossier + '/' + name
+        if os.path.exists(PATHData)==False:      
+            #obtain the href
+            id_article = article.get_attribute('id') # display the id of the current article
+            footer = article.find_element_by_xpath(".//footer")
+            toolbar = footer.find_elements_by_xpath(".//div")
+            classlink = toolbar[1].find_elements_by_xpath(".//a")
+            ref = classlink[1].get_attribute('href') #Link to download 
+            # download the file
+            r = requests.get(ref, allow_redirects=True)
+            open(PATHData, 'wb').write(r.content)
+site = 'DataGouv'
+
+    #driver.get('https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/')
+siteweb ='https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/'
+detail = 'DataGouv_donnes_hospitalieres_covid'
+DataGouvExtraction(siteweb,site, detail)
+
+siteweb = 'https://www.data.gouv.fr/fr/datasets/donnees-des-urgences-hospitalieres-et-de-sos-medecins-relatives-a-lepidemie-de-covid-19/'
+detail = 'DataGouv_donnes_urgences_et_sos_medecin_covid'
+DataGouvExtraction(siteweb,site, detail)
+
+
+
+''' *****************************************'''
+''' *********** Geodes **********************'''
+''' *****************************************'''
+import time
+# driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
+site = 'Geodes'
+
+
+def extractDataFromSiteGeodes(siteweb):
+    driver.get(siteweb)
+    time.sleep(10)
+    python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
+    python_button.click()
+    time.sleep(5)
+    python_button = driver.find_element_by_xpath("//th[@class= 'dt-head-left sorting_asc']")
+    python_button.click()
+    table = driver.find_element_by_xpath("//tbody")
+    rows = table.find_elements_by_xpath("//tr[@role= 'row']")
+    text = [x.text for x in rows]
+    col=["".join(text[i].split()[0]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
+    labels = []
+    rows=[]
+    for i in range(2,103):
+        if i != 101 and i != 92:
+            label = "".join(text[i].split()[1])
+            row = "".join(text[i].split()[2:])
+        elif i == 92:
+            label = "".join(text[i].split()[1:4])
+            row = "".join(text[i].split()[4:])
+        elif i == 101:
+            label = "".join(text[i].split()[1:3])
+            row = "".join(text[i].split()[3:])
+        labels.append(label)
+        rows.append(row)
+
+    data = pd.DataFrame(columns = ['label','data'],index = col)
+    data.loc[:,'label'] = labels
+    data.loc[:,'data'] = row
+    return data
+
+#For all sickness and weeks'
+medicalType=["_sos", "_pass_sau", "_hospit_sau"]
+sickness=[ "asthme", "bronchite", "grippe","pneumopathie"]
+sickAndtypes = ["prop_"+ i+ j for i in sickness for j in medicalType]
+print(sickAndtypes)
+
+
+base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
+sitesweb=[base[:-62]+sickAndtype+base[-40:-37]+str(week)+base[-29:] for sickAndtype in sickAndtypes for week in weeks]
+print(sitesweb)
+
+#just for test rewrite sitesWeb with just one site
+sitesweb=["https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"]
+#For extract column from all sites and add to csv 
+asmthme_hosp_all_2019_s1=extractDataFromSiteGeodes(sitesweb[0]) # output = dataframe
+dataUnif.loc[:,'label']=demo.loc[:,'label']
+
+''' TO COMPLETE: recupérer les colonnes avec extractDataFromSiteGeodes pour chaque patho, age et object et semaine'''
+for week in weeks:
+    # recupérer le csv de la semaine
+    csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
+    # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
+    ages = ['_all','_moins15','_plus65','_15_65']
+    objects = ['_sos','_','_urg','_hosp']
+    pathology = ['covid','asthme','grippe','bronchite', 'pneumopathie']
+    ages = ['_all']
+    objects = ['_hosp']
+    pathology = ['asthme']
+    for patho in pathology:
+        for ob in objects:
+            for age in ages:
+                ''' To complet here''' 
+                columnP=extractDataFromSiteGeodes(sitesweb[0]) # output = dataframe 
+                name = patho + ob + age
+                csv.loc[:,name]=columnP.loc[:,'data'] # pb: n'enregistre pas dans le dataframe, a voir
+                csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
 
 
 
