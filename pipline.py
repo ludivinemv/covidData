@@ -16,10 +16,12 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import os
+import time
 #import ezodf #conda install -c conda-forge ezodf 
 driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
 
-
+CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
+# after replace CHANGE by a method that check differences
 
 
 ''' *****************************************'''
@@ -85,7 +87,7 @@ tot = demo.loc[:,'Etotal']
 rate = 100*wom/tot
 FirstJan2020.loc[:,'sex'] = rate
 
-#7.age (depend of what we want, for exemple if we want the rate of more than 65 years)
+#7.age TO MODIFY: change to have age moyen
 more = demo.loc[:,'E65_69'] +  demo.loc[:,'E70_74'] 
 + demo.loc[:,'E75_79'] +  demo.loc[:,'E80_84']
 + demo.loc[:,'E85_89'] +  demo.loc[:,'E90_94'] +  demo.loc[:,'E95_plus']
@@ -151,19 +153,17 @@ for week in weeks:
         columns=colUnif)
     dataUnif.loc[:,'label']=demo.loc[:,'label']
 
-    #4. add each columns
+    #4. add each columns 
+    #age, sexe, popu
 
 
     #5. save as a csv with the name = [YEAR]_S[week].csv
-    dataUnif.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+    if os.path.exists('./Data/Unify/weeks/{}.csv'.format(week))==False or CHANGE==True:
+        dataUnif.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
 
 #6. create a xcel with each leaf = one csv
 #7.think about how to do the update automatically
-
-df = pd.read_csv(fileToWrite)
-dataframe=
-
-dataUnif.loc[:,'label']=demo.loc[:,'label']
+#df = pd.read_csv(fileToWrite)
 
 
 
@@ -173,55 +173,54 @@ dataUnif.loc[:,'label']=demo.loc[:,'label']
 ''' *****************************************'''
 ''' ************* DataGouv ******************'''
 ''' *****************************************'''
-def DataGouvExtraction(siteweb,site, detail):
-    driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
-    driver.get(siteweb)
-    #resources-list
-    resourceClass = driver.find_element_by_xpath("//div[@class='resources-list']")
-    #just display the text in this resources_list to try
-    # h4 = resourceClass.find_element_by_xpath(".//h4[@class='resource-type']")
-    # h4.text
-    # #card with the files inside. It should be  for loop with @class = instead of id= but for the moment class doesn't work
-    articles = resourceClass.find_elements_by_xpath(".//article")
-    #Now for all articles that e want on the page
-    dossier = 'Data/'+ site+'/'+ detail
-    os.makedirs(dossier, exist_ok=True) 
-    for i in range(len(articles)):
-        article = articles[i]
-        #obtain the name of the csv
-        classN = article.find_element_by_class_name('ellipsis')
-        name = classN.text
-        PATHData = dossier + '/' + name
-        if os.path.exists(PATHData)==False:      
-            #obtain the href
-            id_article = article.get_attribute('id') # display the id of the current article
-            footer = article.find_element_by_xpath(".//footer")
-            toolbar = footer.find_elements_by_xpath(".//div")
-            classlink = toolbar[1].find_elements_by_xpath(".//a")
-            ref = classlink[1].get_attribute('href') #Link to download 
-            # download the file
-            r = requests.get(ref, allow_redirects=True)
-            open(PATHData, 'wb').write(r.content)
-site = 'DataGouv'
+# def DataGouvExtraction(siteweb,site, detail):
+#     driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
+#     driver.get(siteweb)
+#     #resources-list
+#     resourceClass = driver.find_element_by_xpath("//div[@class='resources-list']")
+#     #just display the text in this resources_list to try
+#     # h4 = resourceClass.find_element_by_xpath(".//h4[@class='resource-type']")
+#     # h4.text
+#     # #card with the files inside. It should be  for loop with @class = instead of id= but for the moment class doesn't work
+#     articles = resourceClass.find_elements_by_xpath(".//article")
+#     #Now for all articles that e want on the page
+#     dossier = 'Data/'+ site+'/'+ detail
+#     os.makedirs(dossier, exist_ok=True) 
+#     for i in range(len(articles)):
+#         article = articles[i]
+#         #obtain the name of the csv
+#         classN = article.find_element_by_class_name('ellipsis')
+#         name = classN.text
+#         PATHData = dossier + '/' + name
+#         if os.path.exists(PATHData)==False:      
+#             #obtain the href
+#             id_article = article.get_attribute('id') # display the id of the current article
+#             footer = article.find_element_by_xpath(".//footer")
+#             toolbar = footer.find_elements_by_xpath(".//div")
+#             classlink = toolbar[1].find_elements_by_xpath(".//a")
+#             ref = classlink[1].get_attribute('href') #Link to download 
+#             # download the file
+#             r = requests.get(ref, allow_redirects=True)
+#             open(PATHData, 'wb').write(r.content)
+# site = 'DataGouv'
+#     #driver.get('https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/')
+# siteweb ='https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/'
+# detail = 'DataGouv_donnes_hospitalieres_covid'
+# DataGouvExtraction(siteweb,site, detail)
 
-    #driver.get('https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/')
-siteweb ='https://www.data.gouv.fr/fr/datasets/donnees-hospitalieres-relatives-a-lepidemie-de-covid-19/'
-detail = 'DataGouv_donnes_hospitalieres_covid'
-DataGouvExtraction(siteweb,site, detail)
-
-siteweb = 'https://www.data.gouv.fr/fr/datasets/donnees-des-urgences-hospitalieres-et-de-sos-medecins-relatives-a-lepidemie-de-covid-19/'
-detail = 'DataGouv_donnes_urgences_et_sos_medecin_covid'
-DataGouvExtraction(siteweb,site, detail)
+# siteweb = 'https://www.data.gouv.fr/fr/datasets/donnees-des-urgences-hospitalieres-et-de-sos-medecins-relatives-a-lepidemie-de-covid-19/'
+# detail = 'DataGouv_donnes_urgences_et_sos_medecin_covid'
+# DataGouvExtraction(siteweb,site, detail)
 
 
 
 ''' *****************************************'''
 ''' *********** Geodes **********************'''
 ''' *****************************************'''
-import time
+
+print('EXTRACT FROM GEODES')
 # driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
 site = 'Geodes'
-
 
 def extractDataFromSiteGeodes(siteweb):
     driver.get(siteweb)
@@ -256,21 +255,21 @@ def extractDataFromSiteGeodes(siteweb):
     return data
 
 #For all sickness and weeks'
-medicalType=["_sos", "_pass_sau", "_hospit_sau"]
-sickness=[ "asthme", "bronchite", "grippe","pneumopathie"]
-sickAndtypes = ["prop_"+ i+ j for i in sickness for j in medicalType]
-print(sickAndtypes)
+# medicalType=["_sos", "_pass_sau", "_hospit_sau"]
+# sickness=[ "asthme", "bronchite", "grippe","pneumopathie"]
+# sickAndtypes = ["prop_"+ i+ j for i in sickness for j in medicalType]
+# print(sickAndtypes)
 
 
 base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-sitesweb=[base[:-62]+sickAndtype+base[-40:-37]+str(week)+base[-29:] for sickAndtype in sickAndtypes for week in weeks]
-print(sitesweb)
+# sitesweb=[base[:-62]+sickAndtype+base[-40:-37]+str(week)+base[-29:] for sickAndtype in sickAndtypes for week in weeks]
+#print(sitesweb)
 
 #just for test rewrite sitesWeb with just one site
-sitesweb=["https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"]
-#For extract column from all sites and add to csv 
-asmthme_hosp_all_2019_s1=extractDataFromSiteGeodes(sitesweb[0]) # output = dataframe
-dataUnif.loc[:,'label']=demo.loc[:,'label']
+# sitesweb=["https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"]
+# #For extract column from all sites and add to csv 
+# asmthme_hosp_all_2019_s1=extractDataFromSiteGeodes(sitesweb[0]) # output = dataframe
+# dataUnif.loc[:,'label']=demo.loc[:,'label']
 
 ''' TO COMPLETE: recupérer les colonnes avec extractDataFromSiteGeodes pour chaque patho, age et object et semaine'''
 for week in weeks:
@@ -280,23 +279,36 @@ for week in weeks:
     ages = ['_all','_moins15','_plus65','_15_65']
     objects = ['_sos','_','_urg','_hosp']
     pathology = ['covid','asthme','grippe','bronchite', 'pneumopathie']
-    ages = ['_all']
-    objects = ['_hosp']
-    pathology = ['asthme']
     for patho in pathology:
         for ob in objects:
             for age in ages:
                 ''' To complet here''' 
+                if ob == '_sos':
+                    medicalType = '_sos'
+                elif ob == '_urg':
+                    medicalType = '_pass_sau'
+                elif ob == '_hosp':
+                    medicalType= '_hospit_sau' 
+                sickAndtypes = "prop_"+ patho + medicalType
+                print('****',week, patho,ob,age)
+                if age == '_all':
+                    ageCODE = '0'
+                elif age == '_moins15':
+                    ageCODE = 'A'
+                elif age == '_15_65':
+                    ageCODE = 'B'
+                elif age == '_plus65':
+                    ageCODE = 'C'
+                
+                sitesweb=[base[:-78]+ ageCODE + base[-77:-62] + sickAndtypes +base[-40:-37]+str(week)+base[-29:]]
+
                 columnP=extractDataFromSiteGeodes(sitesweb[0]) # output = dataframe 
                 name = patho + ob + age
                 csv.loc[:,name]=columnP.loc[:,'data'] # pb: n'enregistre pas dans le dataframe, a voir
-                csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+    csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
 
 
-
-
-
-
+##### EROR: aléatoire: Message: no such element: Unable to locate element: {"method":"xpath","selector":"//th[@class= 'dt-head-left sorting_asc']"}
 
 
 
@@ -308,42 +320,3 @@ for week in weeks:
 
 # aaa = resourceClass.find_element_by_css_selector('.card.resource-card a').get_attribute('href')
 # get_div = resourceClass.find_elements_by_tag_name('a',href=True)
-'''************ With beautiful soup*****************'''
-
-#soup = BeautifulSoup(content)
-# listhref = []
-# for link in soup.find_all('a',href=True):
-#     listhref.append(link.get('href'))
-
-
-
-# for a in soup.findAll('a',href=True, attrs={'class':'_31qSD5'}):
-#     name=a.find('div', attrs={'class':'_3wU53n'})
-#     price=a.find('div', attrs={'class':'_1vC4OE _2rQ-NK'})
-#     rating=a.find('div', attrs={'class':'hGSR34 _2beYZw'})
-# products.append(name.text)
-# prices.append(price.text)
-# ratings.append(rating.text)
-
-# df = pd.DataFrame({'Product Name':products,'Price':prices,'Rating':ratings}) 
-# df.to_csv('products.csv', index=False, encoding='utf-8')
-
-
-
-
-
-
-# #example with 1 article:
-# article = articles[0]
-# id_article = article.get_attribute('id') # display the id of the current article
-# footer = article.find_element_by_xpath(".//footer")
-# toolbar = footer.find_elements_by_xpath(".//div")
-# classlink = toolbar[1].find_elements_by_xpath(".//a")
-# ref = classlink[1].get_attribute('href') #Link to download 
-
-# #obtain the name of the csv
-# classN = article.find_element_by_class_name('ellipsis')
-# name = classN.text
-# # download the file
-# r = requests.get(ref, allow_redirects=True)
-# open(name, 'wb').write(r.content)
