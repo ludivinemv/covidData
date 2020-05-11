@@ -100,6 +100,9 @@ FirstJan2020.loc[:,'age'] = rate
 #2.calculs to have to population of the weeks
 #3. create a dataframe with as index the code and as columns the weeks
 
+### https://www.insee.fr/fr/information/4470857#tableau-figure_evol
+### Fichier de décès quotidiennes: 1 Marzo-mayo, 2018-2020
+### Source : Insee, état civil
 
 ''' ************** sex *******************'''
 #1. find sex's evolution per weeks (or days and sum or death and birth) per departements
@@ -112,6 +115,7 @@ FirstJan2020.loc[:,'age'] = rate
 #2.calculs to have to population of the weeks
 #3. create a dataframe with as index the code and as columns the weeks
 
+
 ''' *****************************************'''
 ''' *** Create a unify csv for each week ****'''
 ''' *****************************************'''
@@ -119,7 +123,7 @@ FirstJan2020.loc[:,'age'] = rate
 weeks=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
 print(weeks)
 
-2. #choose the columns
+#2. choose the columns
 colUnif = ['label','sex', 'mean_age',
 'covid_sos_moins15','covid_sos_15_65','covid_sos_plus65','covid_sos_all',
 'covid_urg_moins15','covid_urg_15_65','covid_urg_plus65','covid_urg_all',
@@ -219,12 +223,12 @@ for week in weeks:
 ''' *****************************************'''
 
 print('EXTRACT FROM GEODES')
-# driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
+driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
 site = 'Geodes'
 
 def extractDataFromSiteGeodes(siteweb):
     driver.get(siteweb)
-    time.sleep(10)
+    time.sleep(30)
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
     python_button.click()
     time.sleep(5)
@@ -248,49 +252,50 @@ def extractDataFromSiteGeodes(siteweb):
             row = "".join(text[i].split()[3:])
         labels.append(label)
         rows.append(row)
-
     data = pd.DataFrame(columns = ['label','data'],index = col)
     data.loc[:,'label'] = labels
-    data.loc[:,'data'] = row
+    data.loc[:,'data'] = rows
     return data
 
-#For all sickness and weeks'
-# medicalType=["_sos", "_pass_sau", "_hospit_sau"]
-# sickness=[ "asthme", "bronchite", "grippe","pneumopathie"]
-# sickAndtypes = ["prop_"+ i+ j for i in sickness for j in medicalType]
-# print(sickAndtypes)
+
+# Test function: It works!
+# siteweb='https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01'
+# data=extractDataFromSiteGeodes(siteweb)
+# print(data)
 
 
+''' Recupére les colonnes avec extractDataFromSiteGeodes pour chaque patho, age et object et semaine'''
+
+driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
 base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-# sitesweb=[base[:-62]+sickAndtype+base[-40:-37]+str(week)+base[-29:] for sickAndtype in sickAndtypes for week in weeks]
-#print(sitesweb)
 
-#just for test rewrite sitesWeb with just one site
-# sitesweb=["https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"]
-# #For extract column from all sites and add to csv 
-# asmthme_hosp_all_2019_s1=extractDataFromSiteGeodes(sitesweb[0]) # output = dataframe
-# dataUnif.loc[:,'label']=demo.loc[:,'label']
+weeks=['2020-S15']
 
-''' TO COMPLETE: recupérer les colonnes avec extractDataFromSiteGeodes pour chaque patho, age et object et semaine'''
 for week in weeks:
     # recupérer le csv de la semaine
     csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
-    ages = ['_all','_moins15','_plus65','_15_65']
-    objects = ['_sos','_','_urg','_hosp']
-    pathology = ['covid','asthme','grippe','bronchite', 'pneumopathie']
+    ages = ['_all']
+    objects = ['_sos']
+    pathology = ['asthme']
+    # ages = ['_all','_moins15','_plus65','_15_65']
+    # objects = ['_sos','_','_urg','_hosp']
+    # pathology = ['asthme','grippe','bronchite', 'pneumopathie', 'covid']
     for patho in pathology:
         for ob in objects:
             for age in ages:
                 ''' To complet here''' 
                 if ob == '_sos':
+                    sursaud_type = '_sos.'
                     medicalType = '_sos'
                 elif ob == '_urg':
+                    sursaud_type = '_sau.'
                     medicalType = '_pass_sau'
                 elif ob == '_hosp':
+                    sursaud_type = '_sau.'
                     medicalType= '_hospit_sau' 
-                sickAndtypes = "prop_"+ patho + medicalType
-                print('****',week, patho,ob,age)
+                sickAndtype = "prop_"+ patho + medicalType
+                #print('****',week, patho,ob,age)
                 if age == '_all':
                     ageCODE = '0'
                 elif age == '_moins15':
@@ -300,23 +305,28 @@ for week in weeks:
                 elif age == '_plus65':
                     ageCODE = 'C'
                 
-                sitesweb=[base[:-78]+ ageCODE + base[-77:-62] + sickAndtypes +base[-40:-37]+str(week)+base[-29:]]
-
-                columnP=extractDataFromSiteGeodes(sitesweb[0]) # output = dataframe 
+                siteweb=base[:-78]+ ageCODE + base[-77:-67] + sursaud_type + sickAndtype +base[-40:-37]+str(week)+base[-29:]
+                print(siteweb)
+                columnP=extractDataFromSiteGeodes(siteweb) # output = dataframe 
+                print(columnP)
                 name = patho + ob + age
                 csv.loc[:,name]=columnP.loc[:,'data'] # pb: n'enregistre pas dans le dataframe, a voir
     csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+    print("termina")
+
 
 
 ##### EROR: aléatoire: Message: no such element: Unable to locate element: {"method":"xpath","selector":"//th[@class= 'dt-head-left sorting_asc']"}
+##### Expand sleep time to 20 seconds... geodes page is slow
 
 
 
 
 
 
+# Two data at same time
+# c=indicator&f2=C&i=covid_hospit_incid.incid_hosp&i2=sursaud_sau.prop_bronchite_hospit_sau&s=2020-05-10&s2=2020-S18&selcodgeo=50&t=a01&t2=a01
 
 #JUST EXAMPLES FROM internet here
-
 # aaa = resourceClass.find_element_by_css_selector('.card.resource-card a').get_attribute('href')
 # get_div = resourceClass.find_elements_by_tag_name('a',href=True)
