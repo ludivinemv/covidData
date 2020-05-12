@@ -18,7 +18,7 @@ import requests
 import os
 import time
 #import ezodf #conda install -c conda-forge ezodf 
-driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
+#driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
 
 CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
 # after replace CHANGE by a method that check differences
@@ -221,23 +221,49 @@ for week in weeks:
 ''' *****************************************'''
 ''' *********** Geodes **********************'''
 ''' *****************************************'''
-
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import pandas as pd
+import requests
+import os
+import time
 print('EXTRACT FROM GEODES')
-driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
-site = 'Geodes'
+# driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
+#site = 'Geodes'
+
+# def castingString(linea):
+#     try:
+#         string_int = int(linea)
+#     except ValueError:  # Handle the exception
+#         string_int = -100
+#     return string_int
+
+def castingColumn(column):
+    castData=[]
+    for i in range(len(column)):
+        string = column[i]
+        try:
+            string_int = int(string)
+            castData.append(string_int)
+        except ValueError:
+            # Handle the exception
+            castData.append(-100)
+    return castData
 
 def extractDataFromSiteGeodes(siteweb):
+    driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
     driver.get(siteweb)
     time.sleep(30)
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
     python_button.click()
-    time.sleep(5)
+    time.sleep(10)
     python_button = driver.find_element_by_xpath("//th[@class= 'dt-head-left sorting_asc']")
     python_button.click()
     table = driver.find_element_by_xpath("//tbody")
     rows = table.find_elements_by_xpath("//tr[@role= 'row']")
     text = [x.text for x in rows]
     col=["".join(text[i].split()[0]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
+    #castData=castingData(col))
     labels = []
     rows=[]
     for i in range(2,103):
@@ -253,34 +279,38 @@ def extractDataFromSiteGeodes(siteweb):
         labels.append(label)
         rows.append(row)
     data = pd.DataFrame(columns = ['label','data'],index = col)
+    
     data.loc[:,'label'] = labels
     data.loc[:,'data'] = rows
+    driver.close()
     return data
 
 
-# Test function: It works!
-# siteweb='https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01'
+
+# # Test function: It works!
+# driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
+# siteweb="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
+# #'https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01'
 # data=extractDataFromSiteGeodes(siteweb)
 # print(data)
 
+# # recupérer le csv de la semaine
+# week='2020-S15'
+# csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
+# name = 'asthme_sos_all'
+# print(data.loc[:,'data'])
+# print(csv.loc[:,name])
+# csv.loc[:,name]=data.loc[:,'data']
+# csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+
 
 ''' Recupére les colonnes avec extractDataFromSiteGeodes pour chaque patho, age et object et semaine'''
-
-driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
-base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-
-weeks=['2020-S15']
-
-for week in weeks:
-    # recupérer le csv de la semaine
-    csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
+def obtainDataWeek(week):
+# for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
-    ages = ['_all']
-    objects = ['_sos']
-    pathology = ['asthme']
-    # ages = ['_all','_moins15','_plus65','_15_65']
-    # objects = ['_sos','_','_urg','_hosp']
-    # pathology = ['asthme','grippe','bronchite', 'pneumopathie', 'covid']
+    ages = ['_all','_moins15','_plus65','_15_65']
+    objects = ['_sos','_urg','_hosp']#,'_']
+    pathology = ['asthme']#,'grippe','bronchite', 'pneumopathie']
     for patho in pathology:
         for ob in objects:
             for age in ages:
@@ -307,20 +337,42 @@ for week in weeks:
                 
                 siteweb=base[:-78]+ ageCODE + base[-77:-67] + sursaud_type + sickAndtype +base[-40:-37]+str(week)+base[-29:]
                 print(siteweb)
-                columnP=extractDataFromSiteGeodes(siteweb) # output = dataframe 
-                print(columnP)
+                data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
                 name = patho + ob + age
-                csv.loc[:,name]=columnP.loc[:,'data'] # pb: n'enregistre pas dans le dataframe, a voir
+                #write on csv
+                csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
+                csv.loc[:,name]=castingColumn(data.loc[:,'data'])
+                #dataWeek[name] = data
     csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
-    print("termina")
+    #return dataWeek
 
+
+base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
+# Ecrire CSV
+week='2019-S01'
+obtainDataWeek(week)
+
+#Obtain info
+# dataWeek = {}
+# dataWeek = obtainDataWeek(week)
+
+# keys=list(dataWeek.keys())
+# print(keys)
+
+# for key in keys:
+#     csv.loc[:,key]=castingColumn(dataWeek[key].loc[:,'data'])
+# #print(data.loc[:,'data'] )
+
+
+
+
+### COVID
+# https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sos.prop_covid_sos&s=2020-S15&selcodgeo=50&t=a01&view=map2
+# def obtainDataWeekCovid(Week):
 
 
 ##### EROR: aléatoire: Message: no such element: Unable to locate element: {"method":"xpath","selector":"//th[@class= 'dt-head-left sorting_asc']"}
 ##### Expand sleep time to 20 seconds... geodes page is slow
-
-
-
 
 
 
