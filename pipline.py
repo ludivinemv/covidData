@@ -20,7 +20,7 @@ import time
 #import ezodf #conda install -c conda-forge ezodf 
 #driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
 
-CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
+CHANGE = True #put CHANGE to True if there were changes in the columns or indexes of the csv
 # after replace CHANGE by a method that check differences
 
 
@@ -120,22 +120,14 @@ FirstJan2020.loc[:,'age'] = rate
 ''' *** Create a unify csv for each week ****'''
 ''' *****************************************'''
 #1. choose the weeks to handle
-weeks=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+weeks=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
 print(weeks)
 
 #2. choose the columns
 colUnif = ['label','sex', 'mean_age',
-'covid_sos_moins15','covid_sos_15_65','covid_sos_plus65','covid_sos_all',
-'covid_urg_moins15','covid_urg_15_65','covid_urg_plus65','covid_urg_all',
-'covid_hosp_moins15','covid_hosp_15_65','covid_hosp_plus65','covid_hosp_all',
-'covid_villeTest_moins15','covid_villeTest_15_65','covid_villeTest_plus65','covid_villeTest_all',
-'covid_villePos_moins15','covid_villePos_15_65','covid_villePos_plus65','covid_villePos_all',
-
-
 'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
 'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
 'asthme_hosp_moins15','asthme_hosp_15_65','asthme_hosp_plus65','asthme_hosp_all',
-
 
 'bronchite_sos_moins15','bronchite_sos_15_65','bronchite_sos_plus65','bronchite_sos_all',
 'bronchite_urg_moins15', 'bronchite_urg_15_65', 'bronchite_urg_plus65', 'bronchite_urg_all',
@@ -145,25 +137,38 @@ colUnif = ['label','sex', 'mean_age',
 'grippe_urg_moins15', 'grippe_urg_15_65', 'grippe_urg_plus65', 'grippe_urg_all',
 'grippe_hosp_moins15','grippe_hosp_15_65','grippe_hosp_plus65','grippe_hosp_all',
 
-
 'pneumopathie_sos_moins15','pneumopathie_sos_15_65','pneumopathie_sos_plus65','pneumopathie_sos_all',
 'pneumopathie_urg_moins15', 'pneumopathie_urg_15_65', 'pneumopathie_urg_plus65', 'pneumopathie_urg_all',
 'pneumopathie_hosp_moins15','pneumopathie_hosp_15_65','pneumopathie_hosp_plus65','pneumopathie_hosp_all'
-
 ]
+
 for week in weeks:
     #3. create a dataframe with departements as index 
     dataUnif = pd.DataFrame(index=demo.index,
         columns=colUnif)
     dataUnif.loc[:,'label']=demo.loc[:,'label']
-
-    #4. add each columns 
-    #age, sexe, popu
-
-
     #5. save as a csv with the name = [YEAR]_S[week].csv
     if os.path.exists('./Data/Unify/weeks/{}.csv'.format(week))==False or CHANGE==True:
         dataUnif.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+
+colUnif = ['label',
+'covid_sos_moins15','covid_sos_15_65','covid_sos_plus65','covid_sos_all',
+'covid_urg_moins15','covid_urg_15_65','covid_urg_plus65','covid_urg_all',
+'covid_hosp_moins15','covid_hosp_15_65','covid_hosp_plus65','covid_hosp_all',
+'covid_villeNbTest_moins15','covid_villeNbTest_15_65','covid_villeNbTest_plus65','covid_villeNbTest_all',
+'covid_villeTauxPos_moins15','covid_villeTauxPos_15_65','covid_villeTauxPos_plus65','covid_villeTauxPos_all',
+'covid_villeNbPos_moins15','covid_villeNbPos_15_65','covid_villeNbPos_plus65','covid_villeNbPos_all',
+]
+weeksCovid=[str(2020)+'-S'+str(i) for i in range(10,19)]
+print(weeksCovid)
+for week in weeksCovid:
+    #3. create a dataframe with departements as index 
+    dataUnif = pd.DataFrame(index=demo.index,
+        columns=colUnif)
+    dataUnif.loc[:,'label']=demo.loc[:,'label']
+    #5. save as a csv with the name = [YEAR]_S[week].csv
+    if os.path.exists('./Data/Unify/covid/{}.csv'.format(week))==False or CHANGE==True:
+        dataUnif.to_csv('./Data/Unify/covid/{}.csv'.format(week))
 
 #6. create a xcel with each leaf = one csv
 #7.think about how to do the update automatically
@@ -221,12 +226,7 @@ for week in weeks:
 ''' *****************************************'''
 ''' *********** Geodes **********************'''
 ''' *****************************************'''
-from selenium import webdriver
-from bs4 import BeautifulSoup
-import pandas as pd
-import requests
-import os
-import time
+
 print('EXTRACT FROM GEODES')
 # driver.get('https://geodes.santepubliquefrance.fr/#c=indicator&i=covid_hospit_incid.incid_rea&s=2020-04-28&selcodgeo=02&t=a01')
 #site = 'Geodes'
@@ -306,10 +306,12 @@ def extractDataFromSiteGeodes(siteweb):
 
 ''' Recupére les colonnes avec extractDataFromSiteGeodes pour chaque patho, age et object et semaine'''
 def obtainDataWeek(week):
-# for week in weeks:
+    # for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
     ages = ['_all','_moins15','_plus65','_15_65']
+
     objects = ['_sos','_urg','_hosp']#,'_']
+
     pathology = ['asthme']#,'grippe','bronchite', 'pneumopathie']
     for patho in pathology:
         for ob in objects:
@@ -325,7 +327,7 @@ def obtainDataWeek(week):
                     sursaud_type = '_sau.'
                     medicalType= '_hospit_sau' 
                 sickAndtype = "prop_"+ patho + medicalType
-                #print('****',week, patho,ob,age)
+                print('****',week, patho,ob,age)
                 if age == '_all':
                     ageCODE = '0'
                 elif age == '_moins15':
@@ -341,8 +343,10 @@ def obtainDataWeek(week):
                 name = patho + ob + age
                 #write on csv
                 csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
+                csv.index = csv.loc[:,'code']
+                csv = csv.drop(['code'], axis=1)
                 csv.loc[:,name]=castingColumn(data.loc[:,'data'])
-                #dataWeek[name] = data
+                #dataWeek[name] = data 
     csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
     #return dataWeek
 
@@ -368,11 +372,68 @@ obtainDataWeek(week)
 
 ### COVID
 # https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sos.prop_covid_sos&s=2020-S15&selcodgeo=50&t=a01&view=map2
-# def obtainDataWeekCovid(Week):
+def obtainDataWeekCovid(week):
+    # for week in weeks:
+    # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
+    ages = ['_all','_moins15','_plus75','_15_44','_45-64','_65-74']
+
+    objects = ['_sos','_urg','_hosp','_villeNbTest','_villeTauxPos','_villeNbPos']
+    #write on csv
+    csv = pd.read_csv('./Data/Unify/covid/{}.csv'.format(week))
+    csv.index = csv.loc[:,'code']
+    csv = csv.drop(['code'], axis=1)
+
+    for ob in objects:
+        for age in ages:
+            ''' To complet here''' 
+            if ob == '_sos':
+                sursaud_type = 'sursaud _corona _hebdo.prop_corona_sos'
+            elif ob == '_urg':
+                sursaud_type = 'sursaud_corona_hebdo.prop_corona_pass_sau'
+            elif ob == '_hosp':
+                sursaud_type = 'sursaud_corona_hebdo.prop_corona_hospit_sau'
+            elif ob == '_villeTauxPos':
+                sursaud_type = 'covid_troislabo_heb.tx_pos'
+            elif ob == '_villeNbTest':
+                sursaud_type = 'covid_troislabo_heb.nb_test'
+            elif ob == '_villeNbPos':
+                sursaud_type = 'covid_troislabo_heb.nb_pos'
+            print('****',week,ob,age)
+            if age == '_all':
+                ageCODE = '0'
+            elif age == '_moins15':
+                ageCODE = 'A'
+            elif age == '_15_44':
+                ageCODE = 'B'
+            elif age == '_45-64':
+                ageCODE = 'C'
+            elif age == '_65-74':
+                ageCODE = 'D'
+            elif age == '_plus75':
+                ageCODE = 'E'
+            siteweb=base[:-78]+ ageCODE + base[-77:-67] + sursaud_type  +base[-40:-37]+str(week)+base[-29:]
+            ####En cours: récupérer les deux ages et regrouper ou alors recup tous les ages
+            print(siteweb)
+            data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
+            name = 'covid' + ob + age
+            csv.loc[:,name]=castingColumn(data.loc[:,'data'])
+            #dataWeek[name] = data 
+    csv.to_csv('./Data/Unify/covid/{}.csv'.format(week))
+    #return dataWeek
+
+obtainDataWeekCovid(week)
 
 
-##### EROR: aléatoire: Message: no such element: Unable to locate element: {"method":"xpath","selector":"//th[@class= 'dt-head-left sorting_asc']"}
-##### Expand sleep time to 20 seconds... geodes page is slow
+
+
+
+for week in weeksPatho:
+    csv = pd.read_csv('./Data/Unify/covid/{}.csv'.format(week))
+    csv.index = csv.loc[:,'code']
+    csv = csv.drop(['code'], axis=1)
+
+
+
 
 
 
