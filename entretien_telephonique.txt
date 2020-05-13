@@ -1,0 +1,26 @@
+ce qu'on a fait:
+* extraire pour chaque semaines un fichier covid et un fichier avec les autres pathologies et la démographie
+	* on a séparé car données covid différentes et nombreuses mais on peut les regrouper si vous preferez dans le meme fichier
+* ajout d'un fichier excel pour pouvoir avoir une vue d'ensemble et ne pas avoir a tout ouvrir (1 feuille par semaine)
+
+*Pour le covid: ce qui est possible = ce qui est dans la fiche.
+En rouge = ce que l'on a extrait.
+On peut extraire le reste si vous souhaitez.
+ce qui est en quotidien on peut le mettre par semaine
+Pour les ages regrouper pour avoir les mêmes classes que les autres pathologies? (-15 ans, 15-65 et +65)
+
+* pour les autres patho = voir un exemple
+
+* Pour la france
+...
+
+* Pour sexe, age et démographie on a au 1er janvier 2020 et 2019 ainsi que les décès par jour mais nous n'avons pas trouvé les naissances pour l'instant.
+* on avait parlé de l'age moyen, problème = par classe d'age (5 ans). Voulez vous quand même un age moyen approximé? ou plutôt un taux pour certaines classes
+
+
+Reste à faire:
+* France
+* sexe/age/démographie, trouver les naissances
+*voir pour l'age moyen?
+*ne pas avoir a tout recalculer si déjà rempli
+
