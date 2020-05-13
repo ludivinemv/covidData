@@ -169,7 +169,9 @@ def obtainDataWeek(week,AlreadyDone,fail):
                         #dataWeek[name] = data 
                         csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
                         AlreadyDone.append(done)
+                        np.save('./Data/AlreadyDone.npy',AlreadyDone)
                     except :
+                        print('**fail ',done)
                         fail.append(done)
                         pass
     return fail, AlreadyDone  
@@ -224,7 +226,9 @@ def obtainDataWeekCovid(week,AlreadyDone,fail):
                     #dataWeek[name] = data 
                     csv.to_csv('./Data/Unify/covid/{}.csv'.format(week))
                     AlreadyDone.append(done)
+                    np.save('./Data/AlreadyDone.npy',AlreadyDone)
                 except :
+                    print('**fail ',done)
                     fail.append(done)
                     pass
     return fail, AlreadyDone            
@@ -259,14 +263,16 @@ if __name__ == "__main__":
         AlreadyDone = []
     fail= []
     base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-    #CHANGE = True #put CHANGE to True if there were changes in the columns or indexes of the csv
+    CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
     print('***First January 2020************')
     FirstJan2020, demo = FirstJan()
 
     #1. choose the weeks to handle
     print('*** pathology extraction ************')
 
-    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+
     #2. choose the columns
 
     colUnifPatho = ['label','sex', 'mean_age',
@@ -289,7 +295,7 @@ if __name__ == "__main__":
    
     for week in weeksPatho:
         
-        fail, AlreadyDone =obtainDataWeek(week,AlreadyDone)
+        fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
     SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
 
     print('*** covid extraction ************')
