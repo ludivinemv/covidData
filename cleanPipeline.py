@@ -178,7 +178,7 @@ def obtainDataWeek(week,AlreadyDone,fail):
 def obtainDataWeekCovid(week,AlreadyDone,fail):
     # for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
-    ages = ['_all']#,'_moins15','_plus75','_15_44','_45-64','_65-74'
+    ages = ['_all','_moins15','_plus75','_15_44','_45-64','_65-74']
     objects = ['_sos','_urg','_hosp','_villeNbTest','_villeTauxPos','_villeNbPos']
     #write on csv
     for ob in objects:
@@ -259,7 +259,7 @@ if __name__ == "__main__":
         AlreadyDone = []
     fail= []
     base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-    CHANGE = True #put CHANGE to True if there were changes in the columns or indexes of the csv
+    #CHANGE = True #put CHANGE to True if there were changes in the columns or indexes of the csv
     print('***First January 2020************')
     FirstJan2020, demo = FirstJan()
 
@@ -267,8 +267,8 @@ if __name__ == "__main__":
     print('*** pathology extraction ************')
 
     weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
-    weeksPatho= ['2019-S01']
     #2. choose the columns
+
     colUnifPatho = ['label','sex', 'mean_age',
     'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
     'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
@@ -293,19 +293,17 @@ if __name__ == "__main__":
     SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
 
     print('*** covid extraction ************')
-
     colUnifCovid = ['label',
-    'covid_sos_moins15','covid_sos_15_65','covid_sos_plus65','covid_sos_all',
-    'covid_urg_moins15','covid_urg_15_65','covid_urg_plus65','covid_urg_all',
-    'covid_hosp_moins15','covid_hosp_15_65','covid_hosp_plus65','covid_hosp_all',
-    'covid_villeNbTest_moins15','covid_villeNbTest_15_65','covid_villeNbTest_plus65','covid_villeNbTest_all',
-    'covid_villeTauxPos_moins15','covid_villeTauxPos_15_65','covid_villeTauxPos_plus65','covid_villeTauxPos_all',
-    'covid_villeNbPos_moins15','covid_villeNbPos_15_65','covid_villeNbPos_plus65','covid_villeNbPos_all']
+    'covid_sos_moins15','covid_sos_15_44','covid_sos_45_64','covid_sos_65_74','covid_sos_plus75','covid_sos_all',
+    'covid_urg_moins15','covid_urg_15_44','covid_urg_45_64','covid_urg_65_74','covid_urg_plus75','covid_urg_all',
+    'covid_hosp_moins15','covid_hosp_15_44','covid_hosp_45_64','covid_hosp_65_74','covid_hosp_plus75','covid_hosp_all',
+    'covid_villeNbTest_moins15','covid_villeNbTest_15_44','covid_villeNbTest_45_64','covid_villeNbTest_65_74','covid_villeNbTest_plus75','covid_villeNbTest_all',
+    'covid_villeTauxPos_moins15','covid_villeTauxPos_15_44','covid_villeTauxPos_45_64','covid_villeTauxPos_65_74','covid_villeTauxPos_plus75','covid_villeTauxPos_all',
+    'covid_villeNbPos_moins15','covid_villeNbPos_15_44','covid_villeNbPos_45_64','covid_villeNbPos_65_74','covid_villeNbPos_plus75','covid_villeNbPos_all']
     weeksCovid=[str(2020)+'-S'+str(i) for i in range(10,19)]
-    weeksCovid=['2020-S15']
     createCSV(weeksCovid, demo, colUnifCovid, 'covid')
  
     for week in weeksCovid:
         fail, AlreadyDone = obtainDataWeekCovid(week,AlreadyDone,fail)
 
-    SaveXlsx('PathologyData',weeksCovid,'covid')
+    SaveXlsx('CovidData',weeksCovid,'covid')
