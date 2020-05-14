@@ -129,11 +129,12 @@ def obtainDataWeek(week,AlreadyDone,fail):
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
     ages = ['_all','_moins15','_plus65','_15_65']
     objects = ['_sos','_urg','_hosp']#,'_']
-    pathology = ['asthme']#,'grippe','bronchite', 'pneumopathie']
+    pathology = ['asthme','grippe','bronchite', 'pneumo']
     for patho in pathology:
         for ob in objects:
             for age in ages:
                 done = week + patho+age+ ob
+                print('****',done)
                 if done not in AlreadyDone:
                     ''' To complet here''' 
                     if ob == '_sos':
@@ -144,7 +145,10 @@ def obtainDataWeek(week,AlreadyDone,fail):
                         medicalType = '_pass_sau'
                     elif ob == '_hosp':
                         sursaud_type = '_sau.'
-                        medicalType= '_hospit_sau' 
+                        medicalType= '_hospit_sau'
+                    elif ob == '_hosp' and patho == 'grippe':
+                        sursaud_type = '_sau.'
+                        medicalType= '_hospi_sau' 
                     sickAndtype = "prop_"+ patho + medicalType
                     print('****',week, patho,ob,age)
                     if age == '_all':
@@ -157,7 +161,7 @@ def obtainDataWeek(week,AlreadyDone,fail):
                         ageCODE = 'C'
                     
                     siteweb=base[:-78]+ ageCODE + base[-77:-67] + sursaud_type + sickAndtype +base[-40:-37]+str(week)+base[-29:]
-                    print(siteweb)
+                    #print(siteweb)
                     try:
                         data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
                         name = patho + ob + age
@@ -168,24 +172,34 @@ def obtainDataWeek(week,AlreadyDone,fail):
                         csv.loc[:,name]=castingColumn(data.loc[:,'data'])
                         #dataWeek[name] = data 
                         csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
-                        AlreadyDone.append(done)
+                        AlreadyDone = np.append(AlreadyDone,done)
                         np.save('./Data/AlreadyDone.npy',AlreadyDone)
+                    
+                        print('**csv saved ')
                     except :
                         print('**fail ',done)
-                        fail.append(done)
+                        fail = np.append(fail,done)
+                        np.save('./Data/fail.npy',fail)
+
                         pass
+                else:
+                    print('** Already done ',done)
     return fail, AlreadyDone  
     #return dataWeek
 
 def obtainDataWeekCovid(week,AlreadyDone,fail):
     # for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
-    ages = ['_all','_moins15','_plus75','_15_44','_45-64','_65-74']
+    ages = ['_all','_moins15','_plus75','_15_44','_45_64','_65_74']
     objects = ['_sos','_urg','_hosp','_villeNbTest','_villeTauxPos','_villeNbPos']
+    ages = ['_plus75']
+    objects = ['_urg']
+
     #write on csv
     for ob in objects:
         for age in ages:
             done = week + 'covid'+age+ ob
+            print('****',done)
             if done not in AlreadyDone:
                 csv = pd.read_csv('./Data/Unify/covid/{}.csv'.format(week))
                 csv.index = csv.loc[:,'code']
@@ -203,34 +217,38 @@ def obtainDataWeekCovid(week,AlreadyDone,fail):
                     sursaud_type = 'covid_troislabo_heb.nb_test'
                 elif ob == '_villeNbPos':
                     sursaud_type = 'covid_troislabo_heb.nb_pos'
-                print('****',week,ob,age)
+
                 if age == '_all':
                     ageCODE = '0'
                 elif age == '_moins15':
                     ageCODE = 'A'
                 elif age == '_15_44':
                     ageCODE = 'B'
-                elif age == '_45-64':
+                elif age == '_45_64':
                     ageCODE = 'C'
-                elif age == '_65-74':
+                elif age == '_65_74':
                     ageCODE = 'D'
                 elif age == '_plus75':
                     ageCODE = 'E'
                 siteweb=base[:-78]+ ageCODE + base[-77:-74] + sursaud_type  +base[-40:-37]+str(week)+base[-29:]
                 ####En cours: récupérer les deux ages et regrouper ou alors recup tous les ages
-                print(siteweb)
                 try:
                     data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
                     name = 'covid' + ob + age
                     csv.loc[:,name]=castingColumn(data.loc[:,'data'])
                     #dataWeek[name] = data 
                     csv.to_csv('./Data/Unify/covid/{}.csv'.format(week))
-                    AlreadyDone.append(done)
+                    AlreadyDone= np.append(AlreadyDone,done)
                     np.save('./Data/AlreadyDone.npy',AlreadyDone)
+                    
+                    print('**csv saved ')
                 except :
                     print('**fail ',done)
-                    fail.append(done)
+                    fail = np.append(fail,done)
+                    np.save('./Data/fail.npy',fail)
                     pass
+            else:
+                print('** Already done ',done)
     return fail, AlreadyDone            
     #return dataWeek
 
@@ -250,6 +268,8 @@ def SaveXlsx(file,weeks,filecsv):
         i= i+1
         active = wb[week]
         csv = pd.read_csv('./Data/Unify/{}/{}.csv'.format(filecsv,week))
+        csv.index = csv.loc[:,'code']
+        csv = csv.drop(['code'], axis=1)
         # Write dataframe to active worksheet
         for x in dataframe_to_rows(csv):
             active.append(x)
@@ -261,7 +281,10 @@ if __name__ == "__main__":
         AlreadyDone = np.load('./Data/AlreadyDone.npy')
     else:
         AlreadyDone = []
-    fail= []
+    if os.path.exists('./Data/fail.npy'):
+        fail = np.load('./Data/fail.npy')
+    else:
+        fail = []
     base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
     CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
     print('***First January 2020************')
@@ -271,32 +294,32 @@ if __name__ == "__main__":
     print('*** pathology extraction ************')
 
     # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
-    weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    # weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
 
     #2. choose the columns
 
-    colUnifPatho = ['label','sex', 'mean_age',
-    'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
-    'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
-    'asthme_hosp_moins15','asthme_hosp_15_65','asthme_hosp_plus65','asthme_hosp_all',
+    # colUnifPatho = ['label','sex', 'mean_age',
+    # 'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
+    # 'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
+    # 'asthme_hosp_moins15','asthme_hosp_15_65','asthme_hosp_plus65','asthme_hosp_all',
 
-    'bronchite_sos_moins15','bronchite_sos_15_65','bronchite_sos_plus65','bronchite_sos_all',
-    'bronchite_urg_moins15', 'bronchite_urg_15_65', 'bronchite_urg_plus65', 'bronchite_urg_all',
-    'bronchite_hosp_moins15','bronchite_hosp_15_65','bronchite_hosp_plus65','bronchite_hosp_all',
+    # 'bronchite_sos_moins15','bronchite_sos_15_65','bronchite_sos_plus65','bronchite_sos_all',
+    # 'bronchite_urg_moins15', 'bronchite_urg_15_65', 'bronchite_urg_plus65', 'bronchite_urg_all',
+    # 'bronchite_hosp_moins15','bronchite_hosp_15_65','bronchite_hosp_plus65','bronchite_hosp_all',
 
-    'grippe_sos_moins15','grippe_sos_15_65','grippe_sos_plus65','grippe_sos_all',
-    'grippe_urg_moins15', 'grippe_urg_15_65', 'grippe_urg_plus65', 'grippe_urg_all',
-    'grippe_hosp_moins15','grippe_hosp_15_65','grippe_hosp_plus65','grippe_hosp_all',
+    # 'grippe_sos_moins15','grippe_sos_15_65','grippe_sos_plus65','grippe_sos_all',
+    # 'grippe_urg_moins15', 'grippe_urg_15_65', 'grippe_urg_plus65', 'grippe_urg_all',
+    # 'grippe_hosp_moins15','grippe_hosp_15_65','grippe_hosp_plus65','grippe_hosp_all',
 
-    'pneumopathie_sos_moins15','pneumopathie_sos_15_65','pneumopathie_sos_plus65','pneumopathie_sos_all',
-    'pneumopathie_urg_moins15', 'pneumopathie_urg_15_65', 'pneumopathie_urg_plus65', 'pneumopathie_urg_all',
-    'pneumopathie_hosp_moins15','pneumopathie_hosp_15_65','pneumopathie_hosp_plus65','pneumopathie_hosp_all']
-    createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
+    # 'pneumopathie_sos_moins15','pneumopathie_sos_15_65','pneumopathie_sos_plus65','pneumopathie_sos_all',
+    # 'pneumopathie_urg_moins15', 'pneumopathie_urg_15_65', 'pneumopathie_urg_plus65', 'pneumopathie_urg_all',
+    # 'pneumopathie_hosp_moins15','pneumopathie_hosp_15_65','pneumopathie_hosp_plus65','pneumopathie_hosp_all']
+    # createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
    
-    for week in weeksPatho:
+    # for week in weeksPatho:
         
-        fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
-    SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
+    #     fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
+    # SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
 
     print('*** covid extraction ************')
     colUnifCovid = ['label',
@@ -313,3 +336,6 @@ if __name__ == "__main__":
         fail, AlreadyDone = obtainDataWeekCovid(week,AlreadyDone,fail)
 
     SaveXlsx('CovidData',weeksCovid,'covid')
+
+
+    AlreadyDone = np.load('./Data/AlreadyDone.npy')
