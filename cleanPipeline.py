@@ -1,3 +1,14 @@
+"""
+Created on Mon Apr 27 17:52:41 2020
+
+@author: ludiv
+"""
+
+''' A FAIRE
+
+
+
+ '''
 from selenium import webdriver
 import pandas as pd
 import requests
@@ -6,7 +17,6 @@ import numpy  as np
 import time
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-
 
 def cleanDemo(df):
     age = []
@@ -45,7 +55,7 @@ def castingColumn(column):
             castData.append(string_int)
         except ValueError:
             # Handle the exception
-            castData.append(-100)
+            castData.append(np.nan)
     return castData
 
 def extractDataFromSiteGeodes(siteweb):
@@ -83,7 +93,7 @@ def extractDataFromSiteGeodes(siteweb):
     driver.close()
     return data
 
-def FirstJan():
+def FirstJan(year):
     #1. Take csv from  https://www.insee.fr/fr/statistiques/1893198 :Estimation de population par département, sexe et âge quinquennal - Années 1975 à 2020 (csv a telecharger)
     PATHData = './Data/Insee/demography.xls'
     # if os.path.exists(PATHData)==False:
@@ -92,26 +102,30 @@ def FirstJan():
     #     r = requests.get(ref, stream=True,allow_redirects=True)
     #     open(PATHData, 'wb').write(r.content) 
     #2. open xls
-    demo = pd.read_excel(io=PATHData, sheet_name='2020') #we can choose the year here.
+    demo = pd.read_excel(io=PATHData, sheet_name=year) #we can choose the year here.
     #3. convert in dataframe
     demo = cleanDemo(demo) #all data of the population/sex/age on the 1rst of January of the chosen year
     #4. It will be the Base where we will add variation of other weeks for sexe, age and demog.
     FirstJan2020 = pd.DataFrame(index=demo.index,
-        columns=['label','population','sex', 'age']) #Abstract of the informations on the 1rst of January of the chosen year
+        columns=['label','population','Women_rate', 'NbMoins_15_ans', 'Nb15_65_ans', 'NbPlus_65_ans']) #Abstract of the informations on the 1rst of January of the chosen year
     FirstJan2020.loc[:,'label']=demo.loc[:,'label']
     #5.population (number)
     FirstJan2020.loc[:,'population'] = demo.loc[:,'Etotal']
     #6.sex (% women on the total of population)
     wom = demo.loc[:,'Ftotal']
     tot = demo.loc[:,'Etotal']
-    FirstJan2020.loc[:,'sex'] = 100*wom/tot
+    FirstJan2020.loc[:,'Women_rate'] = 100*wom/tot
     #7.age TO MODIFY: change to have age moyen
     more = demo.loc[:,'E65_69'] +  demo.loc[:,'E70_74'] 
     + demo.loc[:,'E75_79'] +  demo.loc[:,'E80_84']
     + demo.loc[:,'E85_89'] +  demo.loc[:,'E90_94'] +  demo.loc[:,'E95_plus']
-    tot = demo.loc[:,'Etotal']
-    rate = 100*more/tot
-    FirstJan2020.loc[:,'age'] = rate
+    # tot = demo.loc[:,'Etotal']
+    # rate = 100*more/tot
+    FirstJan2020.loc[:,'NbPlus_65_ans'] = more
+    less = demo.loc[:,'E0_4'] +  demo.loc[:,'E5_9'] 
+    + demo.loc[:,'E10_14'] 
+    FirstJan2020.loc[:,'NbMoins_15_ans'] = less
+    FirstJan2020.loc[:,'Nb15_65_ans'] = tot - less - more
     return FirstJan2020, demo
 
 def createCSV(weeks, demo, colUnif,file):
@@ -288,8 +302,9 @@ if __name__ == "__main__":
     base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
     CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
     print('***First January 2020************')
-    FirstJan2020, demo = FirstJan()
-
+    FirstJan2020, demo = FirstJan('2020')
+    FirstJan2020.to_csv('./Data/Unify/FirstJan2020.csv')
+    FirstJan2019, demo = FirstJan('2019')
     #1. choose the weeks to handle
     print('*** pathology extraction ************')
 
@@ -298,7 +313,7 @@ if __name__ == "__main__":
 
     #2. choose the columns
 
-    colUnifPatho = ['label','sex', 'mean_age',
+    colUnifPatho = ['label',
     'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
     'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
     'asthme_hosp_moins15','asthme_hosp_15_65','asthme_hosp_plus65','asthme_hosp_all',
@@ -317,8 +332,8 @@ if __name__ == "__main__":
     createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
    
     for week in weeksPatho:
-        
         fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
+
     SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
 
     print('*** covid extraction ************')
@@ -337,5 +352,3 @@ if __name__ == "__main__":
 
     SaveXlsx('CovidData',weeksCovid,'covid')
 
-
-    AlreadyDone = np.load('./Data/AlreadyDone.npy')
