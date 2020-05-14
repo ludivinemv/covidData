@@ -1,5 +1,4 @@
 from selenium import webdriver
-from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import os
@@ -39,9 +38,10 @@ def cleanDemo(df):
 def castingColumn(column):
     castData=[]
     for i in range(len(column)):
+        string = column[i].replace(',','.')
         string = column[i]
         try:
-            string_int = int(string)
+            string_int = float(string)
             castData.append(string_int)
         except ValueError:
             # Handle the exception
@@ -293,33 +293,33 @@ if __name__ == "__main__":
     #1. choose the weeks to handle
     print('*** pathology extraction ************')
 
-    # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
     # weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
 
     #2. choose the columns
 
-    # colUnifPatho = ['label','sex', 'mean_age',
-    # 'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
-    # 'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
-    # 'asthme_hosp_moins15','asthme_hosp_15_65','asthme_hosp_plus65','asthme_hosp_all',
+    colUnifPatho = ['label','sex', 'mean_age',
+    'asthme_sos_moins15','asthme_sos_15_65','asthme_sos_plus65','asthme_sos_all',
+    'asthme_urg_moins15', 'asthme_urg_15_65', 'asthme_urg_plus65', 'asthme_urg_all',
+    'asthme_hosp_moins15','asthme_hosp_15_65','asthme_hosp_plus65','asthme_hosp_all',
 
-    # 'bronchite_sos_moins15','bronchite_sos_15_65','bronchite_sos_plus65','bronchite_sos_all',
-    # 'bronchite_urg_moins15', 'bronchite_urg_15_65', 'bronchite_urg_plus65', 'bronchite_urg_all',
-    # 'bronchite_hosp_moins15','bronchite_hosp_15_65','bronchite_hosp_plus65','bronchite_hosp_all',
+    'bronchite_sos_moins15','bronchite_sos_15_65','bronchite_sos_plus65','bronchite_sos_all',
+    'bronchite_urg_moins15', 'bronchite_urg_15_65', 'bronchite_urg_plus65', 'bronchite_urg_all',
+    'bronchite_hosp_moins15','bronchite_hosp_15_65','bronchite_hosp_plus65','bronchite_hosp_all',
 
-    # 'grippe_sos_moins15','grippe_sos_15_65','grippe_sos_plus65','grippe_sos_all',
-    # 'grippe_urg_moins15', 'grippe_urg_15_65', 'grippe_urg_plus65', 'grippe_urg_all',
-    # 'grippe_hosp_moins15','grippe_hosp_15_65','grippe_hosp_plus65','grippe_hosp_all',
+    'grippe_sos_moins15','grippe_sos_15_65','grippe_sos_plus65','grippe_sos_all',
+    'grippe_urg_moins15', 'grippe_urg_15_65', 'grippe_urg_plus65', 'grippe_urg_all',
+    'grippe_hosp_moins15','grippe_hosp_15_65','grippe_hosp_plus65','grippe_hosp_all',
 
-    # 'pneumopathie_sos_moins15','pneumopathie_sos_15_65','pneumopathie_sos_plus65','pneumopathie_sos_all',
-    # 'pneumopathie_urg_moins15', 'pneumopathie_urg_15_65', 'pneumopathie_urg_plus65', 'pneumopathie_urg_all',
-    # 'pneumopathie_hosp_moins15','pneumopathie_hosp_15_65','pneumopathie_hosp_plus65','pneumopathie_hosp_all']
-    # createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
+    'pneumo_sos_moins15','pneumo_sos_15_65','pneumo_sos_plus65','pneumo_sos_all',
+    'pneumo_urg_moins15', 'pneumo_urg_15_65', 'pneumo_urg_plus65', 'pneumo_urg_all',
+    'pneumo_hosp_moins15','pneumo_hosp_15_65','pneumo_hosp_plus65','pneumo_hosp_all']
+    createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
    
-    # for week in weeksPatho:
+    for week in weeksPatho:
         
-    #     fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
-    # SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
+        fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
+    SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
 
     print('*** covid extraction ************')
     colUnifCovid = ['label',
