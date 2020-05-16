@@ -62,6 +62,13 @@ def extractDataFromSiteGeodes(siteweb):
     driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
     driver.get(siteweb)
     time.sleep(30)
+    #France
+    python_button = driver.find_element_by_xpath("//a[@id= 'tm_fiche']")
+    python_button.click()
+    time.sleep(10)
+    france = driver.find_element_by_xpath("//button[@class= 'valref-button1 disabled w100']")
+    franceValue = "".join(france.text.split()[2:4])
+    #France
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
     python_button.click()
     time.sleep(10)
@@ -70,7 +77,7 @@ def extractDataFromSiteGeodes(siteweb):
     table = driver.find_element_by_xpath("//tbody")
     rows = table.find_elements_by_xpath("//tr[@role= 'row']")
     text = [x.text for x in rows]
-    col=["".join(text[i].split()[0]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
+    col=['00']+["".join(text[i].split()[0]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
     #castData=castingData(col))
     labels = []
     rows=[]
@@ -88,8 +95,8 @@ def extractDataFromSiteGeodes(siteweb):
         rows.append(row)
     data = pd.DataFrame(columns = ['label','data'],index = col)
     
-    data.loc[:,'label'] = labels
-    data.loc[:,'data'] = rows
+    data.loc[:,'label'] = ["France"]+labels
+    data.loc[:,'data'] = [franceValue]+rows
     driver.close()
     return data
 
