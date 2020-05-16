@@ -7,7 +7,6 @@ import time
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-
 def cleanDemo(df):
     age = []
     for i in range(21):
@@ -52,6 +51,13 @@ def extractDataFromSiteGeodes(siteweb):
     driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
     driver.get(siteweb)
     time.sleep(30)
+    #France
+    python_button = driver.find_element_by_xpath("//a[@id= 'tm_fiche']")
+    python_button.click()
+    time.sleep(10)
+    france = driver.find_element_by_xpath("//button[@class= 'valref-button1 disabled w100']")
+    franceValue = "".join(france.text.split()[2:4])
+    #France
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
     python_button.click()
     time.sleep(10)
@@ -60,7 +66,8 @@ def extractDataFromSiteGeodes(siteweb):
     table = driver.find_element_by_xpath("//tbody")
     rows = table.find_elements_by_xpath("//tr[@role= 'row']")
     text = [x.text for x in rows]
-    col=["".join(text[i].split()[0]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
+    col=['00']+["".join(text[i].split()[0]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
+    print(col)
     #castData=castingData(col))
     labels = []
     rows=[]
@@ -77,11 +84,13 @@ def extractDataFromSiteGeodes(siteweb):
         labels.append(label)
         rows.append(row)
     data = pd.DataFrame(columns = ['label','data'],index = col)
-    
-    data.loc[:,'label'] = labels
-    data.loc[:,'data'] = rows
+    data.loc[:,'label'] = ["France"]+labels
+    data.loc[:,'data'] = [franceValue]+rows
     driver.close()
     return data
+
+siteweb="https://geodes.santepubliquefrance.fr/#bbox=-342399,6426007,386107,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
+data=extractDataFromSiteGeodes(siteweb)
 
 def FirstJan():
     #1. Take csv from  https://www.insee.fr/fr/statistiques/1893198 :Estimation de population par département, sexe et âge quinquennal - Années 1975 à 2020 (csv a telecharger)
