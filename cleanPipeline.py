@@ -18,6 +18,56 @@ import time
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+
+
+def extractFranceData(siteweb):
+    driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
+    driver.get(siteweb)
+    time.sleep(30)
+    python_button = driver.find_element_by_xpath("//a[@id= 'tm_fiche']")
+    python_button.click()
+    time.sleep(10)
+
+    python_button = driver.find_element_by_xpath("//a[@class= 'grille no-print']")
+    python_button.click()
+    time.sleep(2)
+    python_button = driver.find_element_by_xpath("//li[@class= 'menu-selected']")
+    python_button.click()
+    time.sleep(2)
+    table = driver.find_element_by_xpath("//tbody")
+    rows = table.find_elements_by_xpath("//tr")#[@role= 'row']
+    text = [x.text for x in rows if (x.text.startswith('2019') or x.text.startswith('2020'))]
+    values=["".join(text[i].split()[2:3]) for i in range(0,71)]#['00'] #50= N/A-divisionpar0 #2-102
+    driver.close()
+    return values
+
+
+def fillCSV(values,columna, weeks):
+    for (week, value) in zip(weeks, values):
+        csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
+        #Comment faire pour écrire un valeur dans une nouvelle ligne?
+        csv.loc[102,columna]=value
+        csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+
+
+siteweb="https://geodes.santepubliquefrance.fr/#bbox=-342399,6426007,386107,269535&c=indicator&f=C&i=sursaud_sau.prop_asthme_pass_sau&s=2020-S08&selcodgeo=50&t=a01&view=map2"
+values=extractFranceData(siteweb)
+print(values)
+
+# #Write text
+# value=values[0]
+# columna='asthme_sos_moins15'
+# week=[str(2019)+'-S0'+str(i) for i in range(1,2)][0]#+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+
+# csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
+# #?????
+# csv.loc[102,columna]=value
+# csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
+
+
+
+
+
 def cleanDemo(df):
     age = []
     for i in range(21):
@@ -62,13 +112,13 @@ def extractDataFromSiteGeodes(siteweb):
     driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
     driver.get(siteweb)
     time.sleep(30)
-    #France
-    python_button = driver.find_element_by_xpath("//a[@id= 'tm_fiche']")
-    python_button.click()
-    time.sleep(10)
-    france = driver.find_element_by_xpath("//button[@class= 'valref-button1 disabled w100']")
-    franceValue = "".join(france.text.split()[2:4])
-    #France
+    # #France
+    # python_button = driver.find_element_by_xpath("//a[@id= 'tm_fiche']")
+    # python_button.click()
+    # time.sleep(10)
+    # france = driver.find_element_by_xpath("//button[@class= 'valref-button1 disabled w100']")
+    # franceValue = "".join(france.text.split()[2:4])
+    # #France
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
     python_button.click()
     time.sleep(10)
@@ -77,7 +127,7 @@ def extractDataFromSiteGeodes(siteweb):
     table = driver.find_element_by_xpath("//tbody")
     rows = table.find_elements_by_xpath("//tr[@role= 'row']")
     text = [x.text for x in rows]
-    col=['00']+["".join(text[i].split()[0]) for i in range(2,103)]#50= N/A-divisionpar0 #2-102
+    col=["".join(text[i].split()[0]) for i in range(2,103)]#['00'] #50= N/A-divisionpar0 #2-102
     #castData=castingData(col))
     labels = []
     rows=[]
@@ -95,8 +145,8 @@ def extractDataFromSiteGeodes(siteweb):
         rows.append(row)
     data = pd.DataFrame(columns = ['label','data'],index = col)
     
-    data.loc[:,'label'] = ["France"]+labels
-    data.loc[:,'data'] = [franceValue]+rows
+    data.loc[:,'label'] = labels #["France"]+
+    data.loc[:,'data'] = rows #[franceValue]+
     driver.close()
     return data
 
@@ -150,7 +200,7 @@ def obtainDataWeek(week,AlreadyDone,fail):
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
     ages = ['_all','_moins15','_plus65','_15_65']
     objects = ['_sos','_urg','_hosp']#,'_']
-    pathology = ['asthme','grippe','bronchite', 'pneumo']
+    pathology = ['asthme','bronchite', 'pneumo']#'grippe'] # [
     for patho in pathology:
         for ob in objects:
             for age in ages:
@@ -186,6 +236,7 @@ def obtainDataWeek(week,AlreadyDone,fail):
                     try:
                         data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
                         name = patho + ob + age
+                        print(name)
                         #write on csv
                         csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
                         csv.index = csv.loc[:,'code']
@@ -315,8 +366,10 @@ if __name__ == "__main__":
     #1. choose the weeks to handle
     print('*** pathology extraction ************')
 
-    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
-    # weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,2)]
+    # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+
 
     #2. choose the columns
 
