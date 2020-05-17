@@ -315,8 +315,8 @@ if __name__ == "__main__":
     print('*** pathology extraction ************')
 
     # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,2)]
-    # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
-    weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    # weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
 
 
     #2. choose the columns
@@ -338,7 +338,7 @@ if __name__ == "__main__":
     'pneumo_urg_moins15', 'pneumo_urg_15_65', 'pneumo_urg_plus65', 'pneumo_urg_all',
     'pneumo_hosp_moins15','pneumo_hosp_15_65','pneumo_hosp_plus65','pneumo_hosp_all']
     createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
-   
+    
     for week in weeksPatho:
         fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
 
@@ -354,7 +354,7 @@ if __name__ == "__main__":
     'covid_villeNbPos_moins15','covid_villeNbPos_15_44','covid_villeNbPos_45_64','covid_villeNbPos_65_74','covid_villeNbPos_plus75','covid_villeNbPos_all']
     weeksCovid=[str(2020)+'-S'+str(i) for i in range(10,19)]
     createCSV(weeksCovid, demo, colUnifCovid, 'covid')
- 
+
     for week in weeksCovid:
         fail, AlreadyDone = obtainDataWeekCovid(week,AlreadyDone,fail)
 
