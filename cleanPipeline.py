@@ -5,9 +5,6 @@ Created on Mon Apr 27 17:52:41 2020
 """
 
 ''' A FAIRE
-
-
-
  '''
 from selenium import webdriver
 import pandas as pd
@@ -17,55 +14,6 @@ import numpy  as np
 import time
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-
-
-
-def extractFranceData(siteweb):
-    driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
-    driver.get(siteweb)
-    time.sleep(30)
-    python_button = driver.find_element_by_xpath("//a[@id= 'tm_fiche']")
-    python_button.click()
-    time.sleep(10)
-
-    python_button = driver.find_element_by_xpath("//a[@class= 'grille no-print']")
-    python_button.click()
-    time.sleep(2)
-    python_button = driver.find_element_by_xpath("//li[@class= 'menu-selected']")
-    python_button.click()
-    time.sleep(2)
-    table = driver.find_element_by_xpath("//tbody")
-    rows = table.find_elements_by_xpath("//tr")#[@role= 'row']
-    text = [x.text for x in rows if (x.text.startswith('2019') or x.text.startswith('2020'))]
-    values=["".join(text[i].split()[2:3]) for i in range(0,71)]#['00'] #50= N/A-divisionpar0 #2-102
-    driver.close()
-    return values
-
-
-def fillCSV(values,columna, weeks):
-    for (week, value) in zip(weeks, values):
-        csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
-        #Comment faire pour écrire un valeur dans une nouvelle ligne?
-        csv.loc[102,columna]=value
-        csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
-
-
-siteweb="https://geodes.santepubliquefrance.fr/#bbox=-342399,6426007,386107,269535&c=indicator&f=C&i=sursaud_sau.prop_asthme_pass_sau&s=2020-S08&selcodgeo=50&t=a01&view=map2"
-values=extractFranceData(siteweb)
-print(values)
-
-# #Write text
-# value=values[0]
-# columna='asthme_sos_moins15'
-# week=[str(2019)+'-S0'+str(i) for i in range(1,2)][0]#+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
-
-# csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
-# #?????
-# csv.loc[102,columna]=value
-# csv.to_csv('./Data/Unify/weeks/{}.csv'.format(week))
-
-
-
 
 
 def cleanDemo(df):
@@ -367,8 +315,8 @@ if __name__ == "__main__":
     print('*** pathology extraction ************')
 
     # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,2)]
-    # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
-    weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    # weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
 
 
     #2. choose the columns
@@ -390,7 +338,7 @@ if __name__ == "__main__":
     'pneumo_urg_moins15', 'pneumo_urg_15_65', 'pneumo_urg_plus65', 'pneumo_urg_all',
     'pneumo_hosp_moins15','pneumo_hosp_15_65','pneumo_hosp_plus65','pneumo_hosp_all']
     createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
-   
+    
     for week in weeksPatho:
         fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail)
 
@@ -406,7 +354,7 @@ if __name__ == "__main__":
     'covid_villeNbPos_moins15','covid_villeNbPos_15_44','covid_villeNbPos_45_64','covid_villeNbPos_65_74','covid_villeNbPos_plus75','covid_villeNbPos_all']
     weeksCovid=[str(2020)+'-S'+str(i) for i in range(10,19)]
     createCSV(weeksCovid, demo, colUnifCovid, 'covid')
- 
+
     for week in weeksCovid:
         fail, AlreadyDone = obtainDataWeekCovid(week,AlreadyDone,fail)
 
