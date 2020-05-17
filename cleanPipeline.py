@@ -38,6 +38,7 @@ def extractFranceData(siteweb):
     rows = table.find_elements_by_xpath("//tr")#[@role= 'row']
     text = [x.text for x in rows if (x.text.startswith('2019') or x.text.startswith('2020'))]
     values=["".join(text[i].split()[2:3]) for i in range(0,71)]#['00'] #50= N/A-divisionpar0 #2-102
+    driver.close()
     return values
 
 
