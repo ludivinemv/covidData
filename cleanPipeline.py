@@ -305,6 +305,7 @@ if __name__ == "__main__":
     FirstJan2020, demo = FirstJan('2020')
     FirstJan2020.to_csv('./Data/Unify/FirstJan2020.csv')
     FirstJan2019, demo = FirstJan('2019')
+    FirstJan2019.to_csv('./Data/Unify/FirstJan2019.csv')
     #1. choose the weeks to handle
     print('*** pathology extraction ************')
 
