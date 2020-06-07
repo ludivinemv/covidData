@@ -161,7 +161,7 @@ def FirstJan(year):
     frframe1.index.name ='code'
     return frframe1, demoP
 
-def createCSV(weeks, demo, colUnif,file):
+def createCSV(weeks, demo, colUnif,file,CHANGE):
     for week in weeks:
         #3. create a dataframe with departements as index 
         dataUnif = pd.DataFrame(index=demo.index,  columns=colUnif)
@@ -447,7 +447,7 @@ if __name__ == "__main__":
     'pneumo_sos_moins15','pneumo_sos_15_65','pneumo_sos_plus65','pneumo_sos_all',
     'pneumo_urg_moins15', 'pneumo_urg_15_65', 'pneumo_urg_plus65', 'pneumo_urg_all',
     'pneumo_hosp_moins15','pneumo_hosp_15_65','pneumo_hosp_plus65','pneumo_hosp_all']
-    createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
+    createCSV(weeksPatho, demo, colUnifPatho, 'weeks',CHANGE)
     
     for week in weeksPatho:
         fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER)
@@ -463,7 +463,7 @@ if __name__ == "__main__":
     'covid_villeTauxPos_moins15','covid_villeTauxPos_15_44','covid_villeTauxPos_45_64','covid_villeTauxPos_65_74','covid_villeTauxPos_plus75','covid_villeTauxPos_all',
     'covid_villeNbPos_moins15','covid_villeNbPos_15_44','covid_villeNbPos_45_64','covid_villeNbPos_65_74','covid_villeNbPos_plus75','covid_villeNbPos_all']
     weeksCovid=[str(2020)+'-S'+str(i) for i in range(10,19)]
-    createCSV(weeksCovid, demo, colUnifCovid, 'covid')
+    createCSV(weeksCovid, demo, colUnifCovid, 'covid',CHANGE)
 
     for week in weeksCovid:
         fail, AlreadyDone = obtainDataWeekCovid(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER)
