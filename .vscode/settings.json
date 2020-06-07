@@ -3,5 +3,5 @@
     "extensions.ignoreRecommendations": true,
     "files.autoSave": "off",
     "debug.allowBreakpointsEverywhere": true,
-    "python.pythonPath": "C:\\Users\\Vanessa\\Anaconda3\\envs\\COVID\\python.exe"
+    "python.pythonPath": "C:\\Users\\ludiv\\Anaconda3\\envs\\covid\\python.exe"
 }
