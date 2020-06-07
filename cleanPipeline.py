@@ -59,11 +59,11 @@ def castingColumn(column):
 def extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER):
     driver = webdriver.Chrome("./chromedriver_win32_{}/chromedriver".format(CHOOSE_CHROMEDRIVER))
     driver.get(siteweb)
-    time.sleep(30)
+    time.sleep(12)
     #France
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_fiche']")
     python_button.click()
-    time.sleep(10)
+    time.sleep(7)
     france = driver.find_element_by_xpath("//button[@class= 'valref-button1 disabled w100']")
     if len(france.text.split())!=3:
         if france.text.split()[3]=="pour":
@@ -75,7 +75,7 @@ def extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER):
     #France
     python_button = driver.find_element_by_xpath("//a[@id= 'tm_table']")
     python_button.click()
-    time.sleep(10)
+    time.sleep(5)
     python_button = driver.find_element_by_xpath("//th[@class= 'dt-head-left sorting_asc']")
     python_button.click()
     table = driver.find_element_by_xpath("//tbody")
@@ -204,7 +204,7 @@ def obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
                         sursaud_type = '_sau.'
                         medicalType= '_hospi_sau'
                     sickAndtype = "prop_"+ patho + medicalType
-                    print('****',week, patho,ob,age)
+                    #print('****',week, patho,ob,age)
                     if age == '_all':
                         ageCODE = '0'
                     elif age == '_moins15':
@@ -214,12 +214,10 @@ def obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
                     elif age == '_plus65':
                         ageCODE = 'C'
                     siteweb=base[:-78]+ ageCODE + base[-77:-67] + sursaud_type + sickAndtype +base[-40:-37]+str(week)+base[-29:]
-                    print(siteweb)
                     
                     try:
                         data=extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER) # output = dataframe 
                         name = patho + ob + age
-                        print(name)
                         #write on csv
                         csv = pd.read_csv('./Data/Unify/weeks/{}.csv'.format(week))
                         csv.index = csv.loc[:,'code']
@@ -403,7 +401,7 @@ if __name__ == "__main__":
     CHOOSE_CHROMEDRIVER='83'
     # TO DO: code to find the last weeks availables
     #ate code to save in a zip backup and to delate all csv
-    CHANGE = True #put CHANGE to True if there were changes in the columns or indexes of the csv
+    CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
 
     if CHANGE== True:
         deleteAll() #save all weeks csv AlreadyDone.npy and fail.npy 
