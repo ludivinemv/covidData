@@ -14,6 +14,7 @@ import numpy  as np
 import time
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
+from zipfile import ZipFile
 
 
 def cleanDemo(df):
@@ -47,7 +48,6 @@ def castingColumn(column):
     castData=[]
     for i in range(len(column)):
         string = column[i].replace(',','.')
-        string = column[i]
         try:
             string_int = float(string)
             castData.append(string_int)
@@ -81,30 +81,31 @@ def extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER):
     table = driver.find_element_by_xpath("//tbody")
     rows = table.find_elements_by_xpath("//tr[@role= 'row']")
     text = [x.text for x in rows]
-    col=["".join(text[i].split()[0]) for i in range(2,103)]#['00'] #50= N/A-divisionpar0 #2-102
+    code=["".join(text[i].split()[0]) for i in range(2,len(text))]#['00'] #50= N/A-divisionpar0 #2-102
     #castData=castingData(col))
     labels = []
-    rows=[]
-    for i in range(2,103):
-        if i != 101 and i != 92 and i!=102:
+    rowsA=[]
+    weird = ['975','974','90']
+    for i in range(2,len(text)):
+        if "".join(text[i].split()[0]) not in weird:
             label = "".join(text[i].split()[1])
             row = "".join(text[i].split()[2:])
-        elif i == 92 or i==102:
+        elif "".join(text[i].split()[0]) =='975' or "".join(text[i].split()[0]) =='90':
             label = "".join(text[i].split()[1:4])
             row = "".join(text[i].split()[4:])
-        elif i == 101:
+        elif "".join(text[i].split()[0]) =='974':
             label = "".join(text[i].split()[1:3])
             row = "".join(text[i].split()[3:])
         labels.append(label)
-        rows.append(row)
+        rowsA.append(row)
     #France
     labels=["France"]+labels
-    rows=[franceValue]+rows
-    cols=['00']+col
+    rowsA=[franceValue]+rowsA
+    cols=['00']+code
     #France
     data = pd.DataFrame(columns = ['label','data'],index = cols)
     data.loc[:,'label'] = labels #
-    data.loc[:,'data'] = rows #
+    data.loc[:,'data'] = rowsA #
     driver.close()
     return data
 
@@ -120,17 +121,24 @@ def FirstJan(year):
     demo = pd.read_excel(io=PATHData, sheet_name=year) #we can choose the year here.
     #3. convert in dataframe
     demo = cleanDemo(demo) #all data of the population/sex/age on the 1rst of January of the chosen year
+    demoP = demo.append(pd.Series(name='975'))
+    demoP = demo.append(pd.Series(name='977'))
+    demoP = demo.append(pd.Series(name='978'))
+    demoP.loc['975','label']= 'Saint-Pierre et Miquelon'
+    demoP.loc['977','label']= 'Saint-Barthélemy'
+    demoP.loc['978','label']= 'Saint-Martin'
+
     #4. It will be the Base where we will add variation of other weeks for sexe, age and demog.
-    ide=["00"]+[demo.index[i] for i in range(len(demo.index))]
+    ide=["00"]+[demoP.index[i] for i in range(len(demoP.index))]
     frframe=pd.DataFrame(index=["00"],
     columns=['label','population','Women_rate', 'NbMoins_15_ans', 'Nb15_65_ans', 'NbPlus_65_ans'])
     frframe.loc['00','label']='France'
     #FirstJan2020 = pd.concat([frframe,demo]) 
-    FirstJan2020 = pd.DataFrame(index=demo.index,
+    FirstJan2020 = pd.DataFrame(index=demoP.index,
        columns=['label','population','Women_rate', 'NbMoins_15_ans', 'Nb15_65_ans', 'NbPlus_65_ans']) #Abstract of the informations on the 1rst of January of the chosen year
-    FirstJan2020.loc[:,'label']=demo.loc[:,'label']
+    FirstJan2020.loc[:,'label']=demoP.loc[:,'label']
     #5.population (number)
-    FirstJan2020.loc[:,'population'] = demo.loc[:,'Etotal']
+    FirstJan2020.loc[:,'population'] = demoP.loc[:,'Etotal']
     #6.sex (% women on the total of population)
     wom = demo.loc[:,'Ftotal']
     tot = demo.loc[:,'Etotal']
@@ -150,7 +158,8 @@ def FirstJan(year):
     frframe1 = pd.concat([frframe,FirstJan2020]) 
     frframe1.iloc[0,1:]=np.sum(frframe1.iloc[1:,1:])
     frframe1.iloc[0,2]=np.mean(frframe1.iloc[1:,2])
-    return frframe1, demo
+    frframe1.index.name ='code'
+    return frframe1, demoP
 
 def createCSV(weeks, demo, colUnif,file):
     for week in weeks:
@@ -163,6 +172,8 @@ def createCSV(weeks, demo, colUnif,file):
         frframe.loc['00','label']='France'
         dataUnif = pd.concat([frframe,dataUnif]) 
         #5. save as a csv with the name = [YEAR]_S[week].csv
+        dataUnif.index.name ='code'
+
         if os.path.exists('./Data/Unify/{}/{}.csv'.format(file,week))==False or CHANGE==True:
             dataUnif.to_csv('./Data/Unify/{}/{}.csv'.format(file,week))
 
@@ -170,9 +181,9 @@ def createCSV(weeks, demo, colUnif,file):
 def obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
     # for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
-    ages = ['_all']#,'_moins15','_plus65','_15_65']
-    objects = ['_sos']#,'_urg','_hosp']#,'_']
-    pathology = ['grippe']#,'bronchite', 'pneumo']#'grippe'] # [
+    ages = ['_all','_moins15','_plus65','_15_65']
+    objects = ['_sos','_urg','_hosp']#,'_']
+    pathology = ['asthme','grippe','bronchite', 'pneumo']#'grippe'] # [
     for patho in pathology:
         for ob in objects:
             for age in ages:
@@ -229,24 +240,41 @@ def obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
                 else:
                     print('** Already done ',done)
     return fail, AlreadyDone  
-    #return dataWeek
+
+def deleteAll():
+    zipObj = ZipFile('DataBackup{}.zip'.format(time.time()), 'w')   
+    pathw = './Data/Unify/weeks/'
+    pathc = './Data/Unify/covid/'
+    for csv in os.listdir(pathw):
+        zipObj.write(pathw+csv)
+        os.remove(pathw+csv)
+    for csv in os.listdir(pathc):
+        zipObj.write(pathc+csv)
+        os.remove(pathc+csv)
+    if os.path.exists('./Data/Unify/fail.npy'):
+        zipObj.write('./Data/Unify/fail.npy')
+        os.remove('./Data/Unify/fail.npy')
+    if os.path.exists('./Data/Unify/AlreadyDone.npy'):
+        zipObj.write('./Data/Unify/AlreadyDone.npy')
+        os.remove('./Data/Unify/AlreadyDone.npy')
+    # close the Zip File
+    zipObj.close()
 
 #Fast debugger
-base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-week="2020-S17"
-AlreadyDone = []
-fail = []
-obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER)
+#base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
+#week="2020-S17"
+#AlreadyDone = []
+#fail = []
+#obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER)
 
 def obtainDataWeekCovid(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
     # for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
     ages = ['_all','_moins15','_plus75','_15_44','_45_64','_65_74']
     objects = ['_sos','_urg','_hosp','_villeNbTest','_villeTauxPos','_villeNbPos','_nouvRea']
-    #objects = ['_nouvRea']
+
     #write on csv
     for ob in objects:
-        
         if ob != '_nouvRea':
             for age in ages:
                 done = week + 'covid'+age+ ob
@@ -309,11 +337,25 @@ def obtainDataWeekCovid(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
                 csv.index = csv.loc[:,'code']
                 csv = csv.drop(['code'], axis=1)
                 ''' To complet here''' 
-                sursaud_type = 'covid_hospit_incid.incid_rea'
-                siteweb=base[:-80]+  base[-77:-74] + sursaud_type  +base[-40:-37]+str(week)+base[-29:]
                 ####En cours: récupérer les deux ages et regrouper ou alors recup tous les ages
                 try:
-                    data=extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER) # output = dataframe 
+                    weeks_corr = pd.read_excel(io='./week_correspond.xlsx', sheet_name='Feuil1') #we can choose the year here.
+                    weeks_corr.index = weeks_corr.loc[:,'semaine']
+                    days = ['j1','j2','j3','j4','j5','j6','j7']
+                    for j in days:
+                        print(j)
+                        day =  weeks_corr.loc[str(week),j]
+                        sursaud_type = 'covid_hospit_incid.incid_rea'
+                        siteweb=base[:-80]+  base[-77:-74] + sursaud_type  +base[-40:-37]+str(day)+base[-29:]
+                        data=extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER) # output = dataframe 
+                        if j=='j1':
+                            datasomme = data
+                        else:
+                            for i in datasomme.index :
+                                if datasomme.loc[i,'data'] != 'N/A-résultatnondisponible' and data.loc[i,'data'] != 'N/A-résultatnondisponible':
+                                    datasomme.loc[i,'data']= int(datasomme.loc[i,'data']) + int(data.loc[i,'data'])
+                                else:
+                                    datasomme.loc[i,'data']= 'N/A-résultatnondisponible'
                     name = 'covid' + ob 
                     csv.loc[:,name]=castingColumn(data.loc[:,'data'])
                     #dataWeek[name] = data 
@@ -358,7 +400,15 @@ def SaveXlsx(file,weeks,filecsv):
     wb.save(filename)
 
 if __name__ == "__main__":
-    CHOOSE_CHROMEDRIVER='81'
+    CHOOSE_CHROMEDRIVER='83'
+    # TO DO: code to find the last weeks availables
+    #ate code to save in a zip backup and to delate all csv
+    CHANGE = True #put CHANGE to True if there were changes in the columns or indexes of the csv
+
+    if CHANGE== True:
+        deleteAll() #save all weeks csv AlreadyDone.npy and fail.npy 
+        #in a DataBackup.zip and delete them.
+
     if os.path.exists('./Data/AlreadyDone.npy'):
         AlreadyDone = np.load('./Data/AlreadyDone.npy')
     else:
@@ -368,7 +418,6 @@ if __name__ == "__main__":
     else:
         fail = []
     base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&c=indicator&f=0&i=sursaud_sau.prop_asthme_hospit_sau&s=2019-S01&selcodgeo=50&t=a01&view=map2"
-    CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
     print('***First January 2020************')
     FirstJan2020, demo = FirstJan('2020')
     FirstJan2020.to_csv('./Data/Unify/FirstJan2020.csv')
@@ -378,7 +427,7 @@ if __name__ == "__main__":
     print('*** pathology extraction ************')
 
     # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,2)]
-    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,22)]
     # weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
 
 
