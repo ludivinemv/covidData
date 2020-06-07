@@ -56,8 +56,8 @@ def castingColumn(column):
             castData.append(np.nan)
     return castData
 
-def extractDataFromSiteGeodes(siteweb):
-    driver = webdriver.Chrome("./chromedriver_win32/chromedriver")
+def extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER):
+    driver = webdriver.Chrome("./chromedriver_win32_{}/chromedriver".format(CHOOSE_CHROMEDRIVER))
     driver.get(siteweb)
     time.sleep(30)
     #France
@@ -167,7 +167,7 @@ def createCSV(weeks, demo, colUnif,file):
             dataUnif.to_csv('./Data/Unify/{}/{}.csv'.format(file,week))
 
 ''' Recupére les colonnes avec extractDataFromSiteGeodes pour chaque patho, age et object et semaine'''
-def obtainDataWeek(week,AlreadyDone,fail,base):
+def obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
     # for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
     ages = ['_all']#,'_moins15','_plus65','_15_65']
@@ -206,7 +206,7 @@ def obtainDataWeek(week,AlreadyDone,fail,base):
                     print(siteweb)
                     
                     try:
-                        data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
+                        data=extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER) # output = dataframe 
                         name = patho + ob + age
                         print(name)
                         #write on csv
@@ -236,9 +236,9 @@ base="https://geodes.santepubliquefrance.fr/#bbox=-367462,6426007,436234,269535&
 week="2020-S17"
 AlreadyDone = []
 fail = []
-obtainDataWeek(week,AlreadyDone,fail,base)
+obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER)
 
-def obtainDataWeekCovid(week,AlreadyDone,fail,base):
+def obtainDataWeekCovid(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
     # for week in weeks:
     # recuperer le dataframe pour chaque colonne avec extractDataFromSiteGeodes
     ages = ['_all','_moins15','_plus75','_15_44','_45_64','_65_74']
@@ -284,7 +284,7 @@ def obtainDataWeekCovid(week,AlreadyDone,fail,base):
                     siteweb=base[:-78]+ ageCODE + base[-77:-74] + sursaud_type  +base[-40:-37]+str(week)+base[-29:]
                     ####En cours: récupérer les deux ages et regrouper ou alors recup tous les ages
                     try:
-                        data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
+                        data=extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER) # output = dataframe 
                         name = 'covid' + ob + age
                         csv.loc[:,name]=castingColumn(data.loc[:,'data'])
                         #dataWeek[name] = data 
@@ -313,7 +313,7 @@ def obtainDataWeekCovid(week,AlreadyDone,fail,base):
                 siteweb=base[:-80]+  base[-77:-74] + sursaud_type  +base[-40:-37]+str(week)+base[-29:]
                 ####En cours: récupérer les deux ages et regrouper ou alors recup tous les ages
                 try:
-                    data=extractDataFromSiteGeodes(siteweb) # output = dataframe 
+                    data=extractDataFromSiteGeodes(siteweb,CHOOSE_CHROMEDRIVER) # output = dataframe 
                     name = 'covid' + ob 
                     csv.loc[:,name]=castingColumn(data.loc[:,'data'])
                     #dataWeek[name] = data 
@@ -358,6 +358,7 @@ def SaveXlsx(file,weeks,filecsv):
     wb.save(filename)
 
 if __name__ == "__main__":
+    CHOOSE_CHROMEDRIVER='81'
     if os.path.exists('./Data/AlreadyDone.npy'):
         AlreadyDone = np.load('./Data/AlreadyDone.npy')
     else:
@@ -402,7 +403,7 @@ if __name__ == "__main__":
     createCSV(weeksPatho, demo, colUnifPatho, 'weeks')
     
     for week in weeksPatho:
-        fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail,base)
+        fail, AlreadyDone =obtainDataWeek(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER)
 
     SaveXlsx('PathologyData',weeksPatho,'weeks') #save in a excel file
 
@@ -418,7 +419,7 @@ if __name__ == "__main__":
     createCSV(weeksCovid, demo, colUnifCovid, 'covid')
 
     for week in weeksCovid:
-        fail, AlreadyDone = obtainDataWeekCovid(week,AlreadyDone,fail,base)
+        fail, AlreadyDone = obtainDataWeekCovid(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER)
 
     SaveXlsx('CovidData',weeksCovid,'covid')
 
