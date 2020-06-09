@@ -462,7 +462,7 @@ if __name__ == "__main__":
     'covid_villeNbTest_moins15','covid_villeNbTest_15_44','covid_villeNbTest_45_64','covid_villeNbTest_65_74','covid_villeNbTest_plus75','covid_villeNbTest_all',
     'covid_villeTauxPos_moins15','covid_villeTauxPos_15_44','covid_villeTauxPos_45_64','covid_villeTauxPos_65_74','covid_villeTauxPos_plus75','covid_villeTauxPos_all',
     'covid_villeNbPos_moins15','covid_villeNbPos_15_44','covid_villeNbPos_45_64','covid_villeNbPos_65_74','covid_villeNbPos_plus75','covid_villeNbPos_all']
-    weeksCovid=[str(2020)+'-S'+str(i) for i in range(10,19)]
+    weeksCovid=[str(2020)+'-S'+str(i) for i in range(10,23)]
     createCSV(weeksCovid, demo, colUnifCovid, 'covid',CHANGE)
 
     for week in weeksCovid:
