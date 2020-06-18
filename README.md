@@ -3,7 +3,7 @@
 ## organisation
 - Documents
 - Data
-  - Insee *(données démographiques récupérées sur DataGouv et utilisé par le code)*
+  - Insee *(données démographiques récupérées sur DataGouv et utilisées par le code)*
   - Unify *(contient les données récupérées)*
     - covid *(contient les CSVs (1 par semaine) pour le covid)*
     - weeks *(contient les CSVs (1 par semaine) pour les autres pathologies)*
