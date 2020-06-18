@@ -1,7 +1,6 @@
 # covid
 
 ## organisation
-- Documents
 - Data
   - Insee *(données démographiques récupérées sur DataGouv et utilisées par le code)*
   - Unify *(contient les données récupérées)*
