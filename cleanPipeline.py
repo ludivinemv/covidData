@@ -373,7 +373,7 @@ def obtainDataWeekCovid(week,AlreadyDone,fail,base,CHOOSE_CHROMEDRIVER):
     return fail, AlreadyDone            
     #return dataWeek
 
-def SaveXlsx(file,weeks,filecsv):
+def SaveXlsx(file,weeks,filecsv): #save data in a xlsx with one sheet per week
     filename = './Data/Unify/{}.xlsx'.format(file)
     # Create new workbook
     wb = Workbook()
@@ -400,13 +400,11 @@ def SaveXlsx(file,weeks,filecsv):
 if __name__ == "__main__":
     CHOOSE_CHROMEDRIVER='83'
     # TO DO: code to find the last weeks availables
-    #ate code to save in a zip backup and to delate all csv
     CHANGE = False #put CHANGE to True if there were changes in the columns or indexes of the csv
 
     if CHANGE== True:
-        deleteAll() #save all weeks csv AlreadyDone.npy and fail.npy 
-        #in a DataBackup.zip and delete them.
-
+        deleteAll() #save all weeks csv, AlreadyDone.npy, and fail.npy in a DataBackup.zip and delete them.
+        
     if os.path.exists('./Data/AlreadyDone.npy'):
         AlreadyDone = np.load('./Data/AlreadyDone.npy')
     else:
@@ -426,8 +424,7 @@ if __name__ == "__main__":
 
     # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,2)]
     
-    #[str(2019)+'-S0'+str(i) for i in range(1,10)]+
-    #weeksPatho=[str(2019)+'-S'+str(i) for i in range(1,52)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,22)]
+    weeksPatho=[str(2019)+'-S'+str(i) for i in range(1,52)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,22)]
     weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,20)]
 
 
