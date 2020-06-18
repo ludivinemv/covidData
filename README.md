@@ -54,7 +54,7 @@
 
 ## Explication du code
 ### Les options à choisir
-- CHOOSE_CHROMEDRIVER : choisir entre la version '81' et '83'. Si besoin vous pouvez installer une autre version en ajoutant le chromedriver dans la racine dans le dossier chromedriver_win32_Number
-- CHANGE: A mettre sur True si vous voulez tout supprimer et relancer. Pour simplement compléter les fichiers existant mettre à False
-- weeksPatho et weeksCovid: modifier weeksPatho en fonction des semaines désirées. C'est ici qu'il faut modifier pour ajouter les nouvelles semaines au fur et à mesure ( **/!\** pour l'instant il ne reconnait pas lorsque la semaine n'est pas présente, donc si une semaine n'existe pas, au lieu de passer au except, il remplit avec des données d'une semaine avec un url proche.)
-- colUnifPatho et colUnifCovid : si besoin rajouter les colonnes ici 
+- <ins>CHOOSE_CHROMEDRIVER</ins> : choisir entre la version '81' et '83'. Si besoin vous pouvez installer une autre version en ajoutant le chromedriver dans la racine dans le dossier chromedriver_win32_Number
+- <ins>CHANGE</ins>: A mettre sur True si vous voulez tout supprimer et relancer. Pour simplement compléter les fichiers existant mettre à False
+- <ins> weeksPatho et weeksCovid</ins>: modifier weeksPatho en fonction des semaines désirées. C'est ici qu'il faut modifier pour ajouter les nouvelles semaines au fur et à mesure ( **/!\** pour l'instant il ne reconnait pas lorsque la semaine n'est pas présente, donc si une semaine n'existe pas, au lieu de passer au except, il remplit avec des données d'une semaine avec un url proche.)
+-<ins> colUnifPatho et colUnifCovid </ins> : si besoin rajouter les colonnes ici 
