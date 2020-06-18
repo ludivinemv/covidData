@@ -1,5 +1,6 @@
-ce que l'on a fait:
-* extraire pour chaque semaines un fichier covid et un fichier avec les autres pathologies (+ démographie)
+## Ce qui a été fait:
+- Pour chaque semaines un csv covid et un fichier avec les autres pathologies 
+- données démographiques
 	* on a séparé car les données covid sont différentes et nombreuses mais on peut les regrouper si vous preferez dans le même fichier
 * ajout d'un fichier excel pour pouvoir avoir une vue d'ensemble et ne pas avoir à tout ouvrir (1 feuille par semaine)
 
