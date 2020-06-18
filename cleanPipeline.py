@@ -425,8 +425,10 @@ if __name__ == "__main__":
     print('*** pathology extraction ************')
 
     # weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,2)]
-    weeksPatho=[str(2019)+'-S0'+str(i) for i in range(1,10)]+[str(2019)+'-S'+str(i) for i in range(10,55)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,22)]
-    # weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,19)]
+    
+    #[str(2019)+'-S0'+str(i) for i in range(1,10)]+
+    #weeksPatho=[str(2019)+'-S'+str(i) for i in range(1,52)]+[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,22)]
+    weeksPatho=[str(2020)+'-S0'+str(i) for i in range(1,10)]+[str(2020)+'-S'+str(i) for i in range(10,20)]
 
 
     #2. choose the columns
